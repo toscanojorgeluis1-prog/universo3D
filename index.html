@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>El Universo de Ale - Planetas Artísticos</title>
+<title>El Universo de Ale - Planetas Mágicos</title>
 <style>
 body { margin:0; overflow:hidden; background:black; font-family: Arial, sans-serif;}
 #panel { position:absolute; bottom:30px; left:50%; transform:translateX(-50%); background:rgba(0,0,0,0.85); color:white; padding:20px; border-radius:15px; display:none; max-width:420px; text-align:center;}
@@ -45,22 +45,22 @@ starGeo.setAttribute('position', new THREE.Float32BufferAttribute(starVertices,3
 const starMaterial = new THREE.PointsMaterial({color:0xffffff, size:1.5, transparent:true, opacity:0.8});
 scene.add(new THREE.Points(starGeo, starMaterial));
 
-// ===== FUNCION CREAR PLANETA ARTÍSTICO =====
-function createPlanet(size, distance, baseColor, highlightColor, title, text, options={}){
-  // Crear textura dinámica con canvas para estilo artístico
+// ===== FUNCION PARA PLANETAS ARTÍSTICOS =====
+function createPlanet(size, distance, colors, title, text, options={}){
+  // Crear textura con canvas
   const canvas = document.createElement('canvas');
   canvas.width = 512;
   canvas.height = 512;
   const ctx = canvas.getContext('2d');
 
-  // Gradiente radial
+  // Gradiente radial con dos colores
   const grad = ctx.createRadialGradient(256,256,50,256,256,256);
-  grad.addColorStop(0, baseColor);
-  grad.addColorStop(1, highlightColor);
+  grad.addColorStop(0, colors[0]);
+  grad.addColorStop(1, colors[1]);
   ctx.fillStyle = grad;
   ctx.fillRect(0,0,512,512);
 
-  // Agregar "manchas" aleatorias para textura
+  // Agregar “manchas” aleatorias para textura
   for(let i=0;i<150;i++){
     const x = Math.random()*512;
     const y = Math.random()*512;
@@ -76,24 +76,18 @@ function createPlanet(size, distance, baseColor, highlightColor, title, text, op
   const geo = new THREE.SphereGeometry(size,64,64);
   const mat = new THREE.MeshPhongMaterial({
     map: texture,
-    shininess:60,
-    specular:0xaaaaaa,
+    shininess:70,
+    specular:0xaaaaaa
   });
 
   const planet = new THREE.Mesh(geo, mat);
   planet.userData = { distance, angle:Math.random()*Math.PI*2, title, text };
-
   scene.add(planet);
 
   // Nubes opcionales
   if(options.clouds){
     const cloudGeo = new THREE.SphereGeometry(size*1.02,64,64);
-    const cloudMat = new THREE.MeshPhongMaterial({
-      color:0xffffff,
-      transparent:true,
-      opacity:0.4,
-      shininess:50
-    });
+    const cloudMat = new THREE.MeshPhongMaterial({ color:0xffffff, transparent:true, opacity:0.4, shininess:50 });
     const clouds = new THREE.Mesh(cloudGeo, cloudMat);
     planet.add(clouds);
     planet.userData.clouds = clouds;
@@ -111,15 +105,15 @@ function createPlanet(size, distance, baseColor, highlightColor, title, text, op
   return planet;
 }
 
-// ===== PLANETAS ARTÍSTICOS =====
+// ===== PLANETAS =====
 const planets = [
-  createPlanet(1.6,10,'#3fa9f5','#a2d4ff',"Nuestro primer beso","El momento donde empezó nuestro universo.",{clouds:true}),
-  createPlanet(1.8,16,'#f57a3f','#ffb27a',"Citas en el parque","Las tardes contigo en el parque siempre son especiales."),
-  createPlanet(1.5,22,'#f5e93f','#ffffa0',"Tus bromas apestosas","Aunque a veces son terribles, siempre terminan haciéndome reír."),
-  createPlanet(2.0,28,'#a23ff5','#d8a2ff',"Nuestras llamadas","Cada llamada contigo me recuerda cuánto significas para mí."),
-  createPlanet(1.7,34,'#3ff57a','#a0ffc4',"Nuestras historias","Cada historia contigo es una página más de nuestra aventura."),
-  createPlanet(2.3,40,'#3ff5f0','#a0ffff',"Nosotros","Tú y yo, siendo nosotros mismos."),
-  createPlanet(2.5,46,'#f5f53f','#ffffa0',"El amor más fuerte que el mundo","Nuestro amor siempre encuentra la forma de seguir brillando.",{ring:true})
+  createPlanet(1.6,10,['#3fa9f5','#a2d4ff'],"Nuestro primer beso","El momento donde empezó nuestro universo.",{clouds:true}),
+  createPlanet(1.8,16,['#f57a3f','#ffb27a'],"Citas en el parque","Las tardes contigo en el parque siempre son especiales."),
+  createPlanet(1.5,22,['#f5e93f','#ffffa0'],"Tus bromas apestosas","Aunque a veces son terribles, siempre terminan haciéndome reír."),
+  createPlanet(2.0,28,['#a23ff5','#d8a2ff'],"Nuestras llamadas","Cada llamada contigo me recuerda cuánto significas para mí."),
+  createPlanet(1.7,34,['#3ff57a','#a0ffc4'],"Nuestras historias","Cada historia contigo es una página más de nuestra aventura."),
+  createPlanet(2.3,40,['#3ff5f0','#a0ffff'],"Nosotros","Tú y yo, siendo nosotros mismos."),
+  createPlanet(2.5,46,['#f5f53f','#ffffa0'],"El amor más fuerte que el mundo","Nuestro amor siempre encuentra la forma de seguir brillando.",{ring:true})
 ];
 
 // ===== RAYCASTER =====
