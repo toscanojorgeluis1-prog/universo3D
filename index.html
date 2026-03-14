@@ -1,11 +1,11 @@
 <!DOCTYPE html>
+
 <html>
 <head>
 <meta charset="utf-8">
 <title>Nuestro Universo</title>
 
 <style>
-
 body{
 margin:0;
 overflow:hidden;
@@ -39,8 +39,8 @@ border-radius:10px;
 cursor:pointer;
 display:none;
 }
-
 </style>
+
 </head>
 
 <body>
@@ -56,16 +56,16 @@ display:none;
 
 <script>
 
-const scene = new THREE.Scene()
+const scene=new THREE.Scene()
 
-const camera = new THREE.PerspectiveCamera(
+const camera=new THREE.PerspectiveCamera(
 75,
 window.innerWidth/window.innerHeight,
 0.1,
 10000
 )
 
-const renderer = new THREE.WebGLRenderer({antialias:true})
+const renderer=new THREE.WebGLRenderer({antialias:true})
 renderer.setSize(window.innerWidth,window.innerHeight)
 renderer.setPixelRatio(window.devicePixelRatio)
 document.body.appendChild(renderer.domElement)
@@ -73,6 +73,8 @@ document.body.appendChild(renderer.domElement)
 camera.position.set(0,10,30)
 
 const homePosition={x:0,y:10,z:30}
+
+const textureLoader=new THREE.TextureLoader()
 
 
 // LUCES
@@ -84,18 +86,18 @@ const ambient=new THREE.AmbientLight(0x888888)
 scene.add(ambient)
 
 
-// NEBULOSA DE FONDO
+// NEBULOSA
 
-const nebulaGeometry = new THREE.SphereGeometry(900,64,64)
+const nebulaGeometry=new THREE.SphereGeometry(900,64,64)
 
-const nebulaMaterial = new THREE.MeshBasicMaterial({
+const nebulaMaterial=new THREE.MeshBasicMaterial({
 color:0x441a88,
 side:THREE.BackSide,
 transparent:true,
 opacity:0.45
 })
 
-const nebula = new THREE.Mesh(nebulaGeometry,nebulaMaterial)
+const nebula=new THREE.Mesh(nebulaGeometry,nebulaMaterial)
 scene.add(nebula)
 
 
@@ -121,8 +123,7 @@ new THREE.Float32BufferAttribute(starVertices,3)
 
 const starMaterial=new THREE.PointsMaterial({
 color:0xffffff,
-size:0.7,
-transparent:true
+size:0.7
 })
 
 const stars=new THREE.Points(starGeometry,starMaterial)
@@ -213,17 +214,19 @@ createConstellation("ALE")
 
 // PLANETAS
 
-function createPlanet(size,distance,color,title,text){
+function createPlanet(size,distance,textureURL,title,text){
 
-const geo=new THREE.SphereGeometry(size,64,64)
+const geometry=new THREE.SphereGeometry(size,64,64)
 
-const mat=new THREE.MeshStandardMaterial({
-color:color,
-emissive:color,
-emissiveIntensity:0.35
+const texture=textureLoader.load(textureURL)
+
+const material=new THREE.MeshStandardMaterial({
+map:texture,
+roughness:0.8,
+metalness:0.1
 })
 
-const planet=new THREE.Mesh(geo,mat)
+const planet=new THREE.Mesh(geometry,material)
 
 planet.userData={
 distance:distance,
@@ -234,13 +237,10 @@ text:text
 
 scene.add(planet)
 
-
-// ATMOSFERA
-
-const glowGeo=new THREE.SphereGeometry(size*1.25,64,64)
+const glowGeo=new THREE.SphereGeometry(size*1.05,64,64)
 
 const glowMat=new THREE.MeshBasicMaterial({
-color:color,
+color:0x88ccff,
 transparent:true,
 opacity:0.25
 })
@@ -252,21 +252,61 @@ return planet
 
 }
 
-const kiss=createPlanet(1.4,8,0xff4d6d,"Nuestro primer beso","El momento donde comenzó nuestro pequeño universo.")
-const park=createPlanet(1.5,13,0x4dabf7,"Citas en el parque","Los momentos tranquilos contigo siempre se quedan en mi corazón.")
-const fights=createPlanet(1.3,18,0xff6b6b,"Nuestras peleas","Aunque discutimos, siempre encontramos la forma de volver a amarnos.")
-const jokes=createPlanet(1.4,23,0x9d4edd,"Nuestras bromas","Las risas contigo son de mis cosas favoritas.")
-const love=createPlanet(2,30,0x38d9a9,"Nuestro amor","A pesar de todo, siempre seguimos eligiéndonos.")
+const kiss=createPlanet(
+1.4,
+8,
+"https://threejs.org/examples/textures/planets/venus.jpg",
+"Nuestro primer beso",
+"El momento donde comenzó nuestro pequeño universo."
+)
+
+const park=createPlanet(
+1.6,
+13,
+"https://threejs.org/examples/textures/planets/earth_atmos_2048.jpg",
+"Citas en el parque",
+"Los momentos tranquilos contigo siempre se quedan en mi corazón."
+)
+
+const fights=createPlanet(
+1.5,
+18,
+"https://threejs.org/examples/textures/planets/mars_1k_color.jpg",
+"Nuestras peleas",
+"Aunque discutimos, siempre encontramos la forma de volver a amarnos."
+)
+
+const jokes=createPlanet(
+1.8,
+23,
+"https://threejs.org/examples/textures/planets/jupiter.jpg",
+"Nuestras bromas",
+"Las risas contigo son de mis cosas favoritas."
+)
+
+const love=createPlanet(
+2.2,
+30,
+"https://threejs.org/examples/textures/planets/neptune.jpg",
+"Nuestro amor",
+"A pesar de todo, siempre seguimos eligiéndonos."
+)
 
 const planets=[kiss,park,fights,jokes,love]
 
 
 // ANILLO
 
-const ringGeo=new THREE.RingGeometry(2.8,4,64)
+const ringTexture=textureLoader.load(
+"https://threejs.org/examples/textures/planets/saturnringcolor.jpg"
+)
+
+const ringGeo=new THREE.RingGeometry(3,5,128)
+
 const ringMat=new THREE.MeshBasicMaterial({
-color:0xaaaaaa,
-side:THREE.DoubleSide
+map:ringTexture,
+side:THREE.DoubleSide,
+transparent:true
 })
 
 const ring=new THREE.Mesh(ringGeo,ringMat)
@@ -313,7 +353,7 @@ move()
 setInterval(shootingStar,2500)
 
 
-// CONTROL MOUSE
+// MOUSE
 
 let mouseX=0
 let mouseY=0
@@ -332,8 +372,12 @@ function animate(){
 
 requestAnimationFrame(animate)
 
-camera.position.x += (mouseX-camera.position.x)*0.02
-camera.position.y += (-mouseY-camera.position.y)*0.02
+nebula.material.color.offsetHSL(0.0003,0,0)
+
+camera.position.x+=(mouseX-camera.position.x)*0.02
+camera.position.y+=(-mouseY-camera.position.y)*0.02
+
+stars.material.size=0.6+Math.sin(Date.now()*0.002)*0.2
 
 planets.forEach(p=>{
 
@@ -341,6 +385,8 @@ p.userData.angle+=0.002
 
 p.position.x=Math.cos(p.userData.angle)*p.userData.distance
 p.position.z=Math.sin(p.userData.angle)*p.userData.distance
+
+p.rotation.y+=0.003
 
 })
 
