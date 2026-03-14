@@ -32,19 +32,35 @@ font-size:22px;
 margin-bottom:10px;
 }
 
+#homeBtn{
+position:absolute;
+top:20px;
+left:20px;
+padding:10px 16px;
+background:rgba(0,0,0,0.8);
+color:white;
+border:none;
+border-radius:10px;
+cursor:pointer;
+font-size:14px;
+display:none;
+}
+
+#homeBtn:hover{
+background:rgba(255,255,255,0.2);
+}
+
 </style>
 </head>
 
 <body>
 
+<button id="homeBtn">Volver al centro</button>
+
 <div id="panel">
 <h2 id="title"></h2>
 <p id="text"></p>
 </div>
-
-<audio autoplay loop>
-<source src="music.mp3">
-</audio>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 
@@ -62,10 +78,13 @@ window.innerWidth/window.innerHeight,
 const renderer = new THREE.WebGLRenderer({antialias:true})
 
 renderer.setSize(window.innerWidth,window.innerHeight)
+renderer.setPixelRatio(window.devicePixelRatio)
 
 document.body.appendChild(renderer.domElement)
 
 camera.position.set(0,10,30)
+
+const homePosition = {x:0,y:10,z:30}
 
 
 // LUCES
@@ -88,8 +107,8 @@ scene.add(sun)
 
 // ESTRELLAS
 
-const starGeo=new THREE.BufferGeometry()
-const starVertices=[]
+const starGeometry = new THREE.BufferGeometry()
+const starVertices = []
 
 for(let i=0;i<40000;i++){
 
@@ -101,65 +120,84 @@ starVertices.push(x,y,z)
 
 }
 
-starGeo.setAttribute(
+starGeometry.setAttribute(
 'position',
 new THREE.Float32BufferAttribute(starVertices,3)
 )
 
-const starMat=new THREE.PointsMaterial({
+const starMaterial=new THREE.PointsMaterial({
 color:0xffffff,
 size:0.7,
-transparent:true
+transparent:true,
+opacity:0.8
 })
 
-const stars=new THREE.Points(starGeo,starMat)
-
+const stars=new THREE.Points(starGeometry,starMaterial)
 scene.add(stars)
 
 
-// CONSTELACION (nombre)
+// CONSTELACION
 
-function createName(){
+function createConstellation(name){
 
-const geometry=new THREE.BufferGeometry()
+const loader = new THREE.FontLoader()
 
-const vertices=[
-0,60,0,
-5,65,0,
-10,60,0,
-15,65,0,
-20,60,0
-]
+loader.load("https://threejs.org/examples/fonts/helvetiker_regular.typeface.json", function(font){
 
-geometry.setAttribute(
-'position',
-new THREE.Float32BufferAttribute(vertices,3)
-)
-
-const material=new THREE.PointsMaterial({
-color:0xff88ff,
-size:2
+const textGeometry = new THREE.TextGeometry(name,{
+font:font,
+size:8,
+height:0.1
 })
 
-const nameStars=new THREE.Points(geometry,material)
+textGeometry.center()
 
-scene.add(nameStars)
+const positions=[]
+const pos=textGeometry.attributes.position
+
+for(let i=0;i<pos.count;i++){
+
+positions.push(
+pos.getX(i)*2,
+pos.getY(i)*2 + 80,
+pos.getZ(i)*2 - 200
+)
 
 }
 
-createName()
+const geo=new THREE.BufferGeometry()
+
+geo.setAttribute(
+'position',
+new THREE.Float32BufferAttribute(positions,3)
+)
+
+const mat=new THREE.PointsMaterial({
+color:0xffc6ff,
+size:2
+})
+
+const constellation=new THREE.Points(geo,mat)
+
+scene.add(constellation)
+
+})
+
+}
+
+createConstellation("ALE")
 
 
 // PLANETAS
 
-function createPlanet(size,distance,texture,title,text){
+function createPlanet(size,distance,color,title,text){
 
 const geo=new THREE.SphereGeometry(size,64,64)
 
-const textureLoader=new THREE.TextureLoader()
-
 const mat=new THREE.MeshStandardMaterial({
-map:textureLoader.load(texture)
+color:color,
+emissive:color,
+emissiveIntensity:0.2
 })
 
 const planet=new THREE.Mesh(geo,mat)
@@ -177,27 +215,26 @@ return planet
 
 }
 
-
 const kiss=createPlanet(
 1.4,
 8,
-"https://threejs.org/examples/textures/planets/earth_atmos_2048.jpg",
+0xff4d6d,
 "Nuestro primer beso",
-"El momento donde comenzó nuestro universo."
+"El momento donde comenzó nuestro pequeño universo."
 )
 
 const park=createPlanet(
-1.4,
+1.5,
 13,
-"https://threejs.org/examples/textures/planets/venus.jpg",
+0x4dabf7,
 "Citas en el parque",
-"Los días tranquilos contigo siempre son especiales."
+"Los momentos tranquilos contigo siempre se quedan en mi corazón."
 )
 
 const fights=createPlanet(
-1.4,
+1.3,
 18,
-"https://threejs.org/examples/textures/planets/mars_1024.jpg",
+0xff6b6b,
 "Nuestras peleas",
 "Aunque discutimos, siempre encontramos la forma de volver a amarnos."
 )
@@ -205,79 +242,33 @@ const fights=createPlanet(
 const jokes=createPlanet(
 1.4,
 23,
-"https://threejs.org/examples/textures/planets/earth_atmos_2048.jpg",
+0x9d4edd,
 "Nuestras bromas",
 "Las risas contigo son de mis cosas favoritas."
 )
 
-const future=createPlanet(
+const love=createPlanet(
 2,
 30,
-"https://threejs.org/examples/textures/planets/jupiter.jpg",
-"Nuestro futuro",
-"Aún nos quedan millones de recuerdos por crear."
+0x38d9a9,
+"Nuestro amor",
+"A pesar de todo, siempre seguimos eligiéndonos."
 )
 
-const planets=[kiss,park,fights,jokes,future]
+const planets=[kiss,park,fights,jokes,love]
 
 
-// ANILLO PLANETA
+// ANILLO
 
 const ringGeo=new THREE.RingGeometry(2.8,4,64)
-
 const ringMat=new THREE.MeshBasicMaterial({
 color:0xaaaaaa,
 side:THREE.DoubleSide
 })
 
 const ring=new THREE.Mesh(ringGeo,ringMat)
-
 ring.rotation.x=Math.PI/2
-
-future.add(ring)
-
-
-// ESTRELLAS FUGACES
-
-function shootingStar(){
-
-const geo=new THREE.SphereGeometry(0.2,8,8)
-const mat=new THREE.MeshBasicMaterial({color:0xffffff})
-
-const star=new THREE.Mesh(geo,mat)
-
-star.position.set(
-(Math.random()-0.5)*300,
-100,
-(Math.random()-0.5)*300
-)
-
-scene.add(star)
-
-let speed=4
-
-function move(){
-
-star.position.y-=speed
-star.position.x+=speed
-
-if(star.position.y<-100){
-
-scene.remove(star)
-
-}else{
-
-requestAnimationFrame(move)
-
-}
-
-}
-
-move()
-
-}
-
-setInterval(shootingStar,3000)
+love.add(ring)
 
 
 // CONTROL MOUSE
@@ -321,7 +312,6 @@ animate()
 // CLICK PLANETAS
 
 const raycaster=new THREE.Raycaster()
-
 const mouse=new THREE.Vector2()
 
 window.addEventListener("click",event=>{
@@ -338,19 +328,36 @@ if(intersects.length>0){
 let p=intersects[0].object
 
 document.getElementById("panel").style.display="block"
+document.getElementById("homeBtn").style.display="block"
 
 document.getElementById("title").innerText=p.userData.title
 document.getElementById("text").innerText=p.userData.text
 
 camera.position.set(
-p.position.x*1.5,
-p.position.y+2,
-p.position.z*1.5
+p.position.x*1.6,
+p.position.y+3,
+p.position.z*1.6
 )
 
 }
 
 })
+
+
+// BOTON REGRESAR
+
+document.getElementById("homeBtn").onclick=function(){
+
+camera.position.set(
+homePosition.x,
+homePosition.y,
+homePosition.z
+)
+
+document.getElementById("panel").style.display="none"
+document.getElementById("homeBtn").style.display="none"
+
+}
 
 </script>
 </body>
