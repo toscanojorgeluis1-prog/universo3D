@@ -2,39 +2,43 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>Universo Tide Eye - Planetas Oscuros</title>
+<title>Museo Espacial</title>
 <style>
 body { margin:0; overflow:hidden; background:black; font-family: Arial, sans-serif;}
-#panel { position:absolute; bottom:30px; left:50%; transform:translateX(-50%); background:rgba(0,0,0,0.85); color:white; padding:20px; border-radius:15px; display:none; max-width:420px; text-align:center;}
-#homeBtn { position:absolute; top:20px; left:20px; padding:10px 15px; background:rgba(0,0,0,0.8); color:white; border:none; border-radius:10px; cursor:pointer; display:none;}
+.info-panel {
+  position:absolute; top:20px; left:20px; color:white; background:rgba(0,0,0,0.5);
+  padding:10px 15px; border-radius:10px; max-width:250px;
+}
 </style>
 </head>
 <body>
 
-<button id="homeBtn">Volver al inicio</button>
-<div id="panel">
-  <h2 id="title"></h2>
-  <p id="text"></p>
-</div>
+<div id="infoContainer"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 
 <script>
 // ===== ESCENA, CÁMARA Y RENDER =====
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 4000);
-const renderer = new THREE.WebGLRenderer({antialias:true});
-renderer.setSize(window.innerWidth, window.innerHeight);
-document.body.appendChild(renderer.domElement);
 camera.position.set(0,30,70);
-const homePosition = camera.position.clone();
-let targetPlanet = null;
+const renderer = new THREE.WebGLRenderer({antialias:true});
+renderer.setSize(window.innerWidth,window.innerHeight);
+document.body.appendChild(renderer.domElement);
+
+// ===== CONTROLES =====
+const controls = new THREE.OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+controls.dampingFactor = 0.05;
+controls.minDistance = 20;
+controls.maxDistance = 200;
 
 // ===== LUCES =====
 const sunLight = new THREE.PointLight(0xffffff, 2);
 sunLight.position.set(0,80,50);
 scene.add(sunLight);
-scene.add(new THREE.AmbientLight(0xffffff, 0.2)); // luz ambiental muy sutil
+scene.add(new THREE.AmbientLight(0xffffff,0.2));
 
 // ===== ESTRELLAS =====
 const starGeo = new THREE.BufferGeometry();
@@ -43,122 +47,75 @@ for(let i=0;i<50000;i++){
   starVertices.push((Math.random()-0.5)*4000, (Math.random()-0.5)*4000, (Math.random()-0.5)*4000);
 }
 starGeo.setAttribute('position', new THREE.Float32BufferAttribute(starVertices,3));
-const starMaterial = new THREE.PointsMaterial({color:0xffffff, size:1.2, transparent:true, opacity:0.8});
-const stars = new THREE.Points(starGeo, starMaterial);
+const stars = new THREE.Points(starGeo,new THREE.PointsMaterial({color:0xffffff,size:1.2,transparent:true,opacity:0.8}));
 scene.add(stars);
 
-// ===== FUNCION CREAR PLANETA OSCURO =====
-function createPlanet(size, distance, colors, title, text, options={}){
-  // Canvas para textura procedural
-  const canvas = document.createElement('canvas');
-  canvas.width = 512; canvas.height = 512;
-  const ctx = canvas.getContext('2d');
+// ===== NEBULOSA =====
+const nebTexture = new THREE.TextureLoader().load('https://threejs.org/examples/textures/lensflare/lensflare0_alpha.png');
+const nebGeo = new THREE.SphereGeometry(800,32,32);
+const nebMat = new THREE.MeshBasicMaterial({map:nebTexture, transparent:true, opacity:0.15, side:THREE.BackSide});
+const nebula = new THREE.Mesh(nebGeo, nebMat);
+scene.add(nebula);
 
-  const grad = ctx.createRadialGradient(256,256,50,256,256,256);
-  grad.addColorStop(0, colors[0]);
-  grad.addColorStop(1, colors[1]);
-  ctx.fillStyle = grad;
-  ctx.fillRect(0,0,512,512);
-
-  // Manchas sutiles
-  for(let i=0;i<100;i++){
-    const x = Math.random()*512;
-    const y = Math.random()*512;
-    const radius = Math.random()*6+2;
-    ctx.fillStyle = `rgba(255,255,255,${Math.random()*0.05})`; // muy sutil
-    ctx.beginPath();
-    ctx.arc(x,y,radius,0,Math.PI*2);
-    ctx.fill();
-  }
-
-  const texture = new THREE.CanvasTexture(canvas);
-  const geo = new THREE.SphereGeometry(size,64,64);
-  const mat = new THREE.MeshPhongMaterial({
-    map: texture,
-    shininess:10, // muy bajo para que no sea brillante
-    specular:0x222222
-  });
-
-  const planet = new THREE.Mesh(geo, mat);
-  planet.userData = { distance, angle:Math.random()*Math.PI*2, title, text, clouds:null };
-  scene.add(planet);
-
-  if(options.clouds){
-    const cloudGeo = new THREE.SphereGeometry(size*1.02,64,64);
-    const cloudMat = new THREE.MeshPhongMaterial({ color:0xffffff, transparent:true, opacity:0.2, shininess:5 });
-    const clouds = new THREE.Mesh(cloudGeo, cloudMat);
-    planet.add(clouds);
-    planet.userData.clouds = clouds;
-  }
-
-  if(options.ring){
-    const ringGeo = new THREE.RingGeometry(size*1.2, size*2, 64);
-    const ringMat = new THREE.MeshBasicMaterial({ color:0x666699, side:THREE.DoubleSide, transparent:true, opacity:0.4 });
-    const ringMesh = new THREE.Mesh(ringGeo, ringMat);
-    ringMesh.rotation.x = -0.5*Math.PI;
-    planet.add(ringMesh);
-  }
-
-  return planet;
-}
-
-// ===== PLANETAS OSCUROS =====
-const planets = [
-  createPlanet(1.6,10,['#0a2a3d','#123a5c'],"Nuestro primer beso","El momento donde empezó nuestro universo.",{clouds:true}),
-  createPlanet(1.8,16,['#3a1f3d','#5a2f5c'],"Citas en el parque","Las tardes contigo en el parque siempre son especiales."),
-  createPlanet(1.5,22,['#1f3a2a','#2f5c3c'],"Tus bromas apestosas","Aunque a veces son terribles, siempre terminan haciéndome reír."),
-  createPlanet(2.0,28,['#5d1f2a','#7c2f3c'],"Nuestras llamadas","Cada llamada contigo me recuerda cuánto significas para mí."),
-  createPlanet(1.7,34,['#0f3a3a','#1f5c5c'],"Nuestras historias","Cada historia contigo es una página más de nuestra aventura."),
-  createPlanet(2.3,40,['#1f1f3a','#3c3c5c'],"Nosotros","Tú y yo, siendo nosotros mismos."),
-  createPlanet(2.5,46,['#3a3a1f','#5c5c2f'],"El amor más fuerte que el mundo","Nuestro amor siempre encuentra la forma de seguir brillando.",{ring:true})
+// ===== PLANETAS =====
+const planetImages = [
+  'https://drive.google.com/uc?export=view&id=1-ZV3iV8G1zMvGcnGUcry6Lrb_e3uQBux',
+  'https://drive.google.com/uc?export=view&id=1sA2WRwr5Lm6PZ5K4Sd5lT49Y7HVBsQv7',
+  'https://drive.google.com/uc?export=view&id=1TfXKawvIIogRdwt0aZcSFGncAgB60P29',
+  'https://drive.google.com/uc?export=view&id=1s2yW7KT-Bszy8d3HmZU0_mxb0TgireWy',
+  'https://drive.google.com/uc?export=view&id=1WLGVjSqDXHi7apBdkvwAszMLV-CN_h5h',
+  'https://drive.google.com/uc?export=view&id=1cz2StgWxVU0FE-QeHMeasXNsTw99c9pA'
 ];
 
-// ===== RAYCASTER =====
-const raycaster = new THREE.Raycaster();
-const mouse = new THREE.Vector2();
-window.addEventListener("click",(event)=>{
-  mouse.x = (event.clientX/window.innerWidth)*2-1;
-  mouse.y = -(event.clientY/window.innerHeight)*2+1;
-  raycaster.setFromCamera(mouse,camera);
-  const intersects = raycaster.intersectObjects(planets);
-  if(intersects.length>0){
-    targetPlanet = intersects[0].object;
-    document.getElementById("panel").style.display="block";
-    document.getElementById("homeBtn").style.display="block";
-    document.getElementById("title").innerText = targetPlanet.userData.title;
-    document.getElementById("text").innerText = targetPlanet.userData.text;
-  }
-});
+const planetInfo = [
+  "Primer beso - Nuestro inicio",
+  "Citas en el parque - Momentos felices",
+  "Tus bromas - Siempre me hacen reír",
+  "Nuestras llamadas - Recuerdos íntimos",
+  "Historias juntos - Aventuras compartidas",
+  "Amor fuerte - Siempre brillando"
+];
 
-// ===== BOTON VOLVER =====
-document.getElementById("homeBtn").onclick = ()=>{
-  targetPlanet=null;
-  camera.position.copy(homePosition);
-  document.getElementById("panel").style.display="none";
-  document.getElementById("homeBtn").style.display="none";
-};
+const planets = [];
+const infoContainer = document.getElementById('infoContainer');
+
+planetImages.forEach((imgSrc,i)=>{
+  const texture = new THREE.TextureLoader().load(imgSrc);
+  const geo = new THREE.SphereGeometry(3 + Math.random(),64,64);
+  const mat = new THREE.MeshPhongMaterial({map:texture, shininess:5});
+  const planet = new THREE.Mesh(geo,mat);
+  const angle = (i/planetImages.length) * Math.PI*2;
+  const radius = 15 + i*10;
+  planet.position.set(Math.cos(angle)*radius, 0, Math.sin(angle)*radius);
+  scene.add(planet);
+  planets.push(planet);
+
+  // Crear panel de información siempre visible
+  const div = document.createElement('div');
+  div.className = 'info-panel';
+  div.style.position = 'absolute';
+  div.innerText = planetInfo[i];
+  infoContainer.appendChild(div);
+  planet.userData.infoDiv = div;
+});
 
 // ===== ANIMACIÓN =====
 function animate(){
   requestAnimationFrame(animate);
-  planets.forEach(p=>{
-    p.userData.angle += 0.0015 + Math.random()*0.0005;
-    p.position.x = Math.cos(p.userData.angle)*p.userData.distance;
-    p.position.z = Math.sin(p.userData.angle)*p.userData.distance;
-    p.rotation.y += 0.003 + Math.random()*0.001;
-    if(p.userData.clouds) p.userData.clouds.rotation.y += 0.0015;
-  });
-
-  if(targetPlanet){
-    const pos = new THREE.Vector3(targetPlanet.position.x+6,targetPlanet.position.y+3,targetPlanet.position.z+6);
-    camera.position.lerp(pos,0.05);
-    camera.lookAt(targetPlanet.position);
-  }
-
+  controls.update();
   renderer.render(scene,camera);
+
+  // Actualizar posición de paneles de info
+  planets.forEach(p=>{
+    const vector = p.position.clone();
+    vector.project(camera);
+    const x = (vector.x * 0.5 + 0.5) * window.innerWidth;
+    const y = (-vector.y * 0.5 + 0.5) * window.innerHeight;
+    p.userData.infoDiv.style.left = `${x}px`;
+    p.userData.infoDiv.style.top = `${y}px`;
+  });
 }
 
-// ===== AJUSTE VENTANA =====
 window.addEventListener('resize',()=>{
   camera.aspect = window.innerWidth/window.innerHeight;
   camera.updateProjectionMatrix();
