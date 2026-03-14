@@ -27,27 +27,17 @@ max-width:420px;
 text-align:center;
 }
 
-#title{
-font-size:22px;
-margin-bottom:10px;
-}
-
 #homeBtn{
 position:absolute;
 top:20px;
 left:20px;
-padding:10px 16px;
+padding:10px 15px;
 background:rgba(0,0,0,0.8);
 color:white;
 border:none;
 border-radius:10px;
 cursor:pointer;
-font-size:14px;
 display:none;
-}
-
-#homeBtn:hover{
-background:rgba(255,255,255,0.2);
 }
 
 </style>
@@ -76,15 +66,13 @@ window.innerWidth/window.innerHeight,
 )
 
 const renderer = new THREE.WebGLRenderer({antialias:true})
-
 renderer.setSize(window.innerWidth,window.innerHeight)
 renderer.setPixelRatio(window.devicePixelRatio)
-
 document.body.appendChild(renderer.domElement)
 
 camera.position.set(0,10,30)
 
-const homePosition = {x:0,y:10,z:30}
+const homePosition={x:0,y:10,z:30}
 
 
 // LUCES
@@ -96,27 +84,33 @@ const ambient=new THREE.AmbientLight(0x888888)
 scene.add(ambient)
 
 
-// SOL
+// NEBULOSA DE FONDO
 
-const sunGeo=new THREE.SphereGeometry(4,64,64)
-const sunMat=new THREE.MeshBasicMaterial({color:0xffcc66})
-const sun=new THREE.Mesh(sunGeo,sunMat)
+const nebulaGeometry = new THREE.SphereGeometry(900,64,64)
 
-scene.add(sun)
+const nebulaMaterial = new THREE.MeshBasicMaterial({
+color:0x441a88,
+side:THREE.BackSide,
+transparent:true,
+opacity:0.45
+})
+
+const nebula = new THREE.Mesh(nebulaGeometry,nebulaMaterial)
+scene.add(nebula)
 
 
 // ESTRELLAS
 
-const starGeometry = new THREE.BufferGeometry()
-const starVertices = []
+const starGeometry=new THREE.BufferGeometry()
+const starVertices=[]
 
 for(let i=0;i<40000;i++){
 
-let x=(Math.random()-0.5)*2000
-let y=(Math.random()-0.5)*2000
-let z=(Math.random()-0.5)*2000
-
-starVertices.push(x,y,z)
+starVertices.push(
+(Math.random()-0.5)*2000,
+(Math.random()-0.5)*2000,
+(Math.random()-0.5)*2000
+)
 
 }
 
@@ -128,23 +122,53 @@ new THREE.Float32BufferAttribute(starVertices,3)
 const starMaterial=new THREE.PointsMaterial({
 color:0xffffff,
 size:0.7,
-transparent:true,
-opacity:0.8
+transparent:true
 })
 
 const stars=new THREE.Points(starGeometry,starMaterial)
 scene.add(stars)
 
 
+// POLVO COSMICO
+
+const dustGeometry=new THREE.BufferGeometry()
+const dustVertices=[]
+
+for(let i=0;i<15000;i++){
+
+dustVertices.push(
+(Math.random()-0.5)*1200,
+(Math.random()-0.5)*1200,
+(Math.random()-0.5)*1200
+)
+
+}
+
+dustGeometry.setAttribute(
+'position',
+new THREE.Float32BufferAttribute(dustVertices,3)
+)
+
+const dustMaterial=new THREE.PointsMaterial({
+color:0xffccff,
+size:0.8,
+transparent:true,
+opacity:0.6
+})
+
+const cosmicDust=new THREE.Points(dustGeometry,dustMaterial)
+scene.add(cosmicDust)
+
+
 // CONSTELACION
 
 function createConstellation(name){
 
-const loader = new THREE.FontLoader()
+const loader=new THREE.FontLoader()
 
-loader.load("https://threejs.org/examples/fonts/helvetiker_regular.typeface.json", function(font){
+loader.load("https://threejs.org/examples/fonts/helvetiker_regular.typeface.json",function(font){
 
-const textGeometry = new THREE.TextGeometry(name,{
+const textGeometry=new THREE.TextGeometry(name,{
 font:font,
 size:8,
 height:0.1
@@ -159,8 +183,8 @@ for(let i=0;i<pos.count;i++){
 
 positions.push(
 pos.getX(i)*2,
-pos.getY(i)*2 + 80,
-pos.getZ(i)*2 - 200
+pos.getY(i)*2+80,
+pos.getZ(i)*2-200
 )
 
 }
@@ -178,7 +202,6 @@ size:2
 })
 
 const constellation=new THREE.Points(geo,mat)
-
 scene.add(constellation)
 
 })
@@ -197,7 +220,7 @@ const geo=new THREE.SphereGeometry(size,64,64)
 const mat=new THREE.MeshStandardMaterial({
 color:color,
 emissive:color,
-emissiveIntensity:0.2
+emissiveIntensity:0.35
 })
 
 const planet=new THREE.Mesh(geo,mat)
@@ -211,49 +234,29 @@ text:text
 
 scene.add(planet)
 
+
+// ATMOSFERA
+
+const glowGeo=new THREE.SphereGeometry(size*1.25,64,64)
+
+const glowMat=new THREE.MeshBasicMaterial({
+color:color,
+transparent:true,
+opacity:0.25
+})
+
+const glow=new THREE.Mesh(glowGeo,glowMat)
+planet.add(glow)
+
 return planet
 
 }
 
-const kiss=createPlanet(
-1.4,
-8,
-0xff4d6d,
-"Nuestro primer beso",
-"El momento donde comenzó nuestro pequeño universo."
-)
-
-const park=createPlanet(
-1.5,
-13,
-0x4dabf7,
-"Citas en el parque",
-"Los momentos tranquilos contigo siempre se quedan en mi corazón."
-)
-
-const fights=createPlanet(
-1.3,
-18,
-0xff6b6b,
-"Nuestras peleas",
-"Aunque discutimos, siempre encontramos la forma de volver a amarnos."
-)
-
-const jokes=createPlanet(
-1.4,
-23,
-0x9d4edd,
-"Nuestras bromas",
-"Las risas contigo son de mis cosas favoritas."
-)
-
-const love=createPlanet(
-2,
-30,
-0x38d9a9,
-"Nuestro amor",
-"A pesar de todo, siempre seguimos eligiéndonos."
-)
+const kiss=createPlanet(1.4,8,0xff4d6d,"Nuestro primer beso","El momento donde comenzó nuestro pequeño universo.")
+const park=createPlanet(1.5,13,0x4dabf7,"Citas en el parque","Los momentos tranquilos contigo siempre se quedan en mi corazón.")
+const fights=createPlanet(1.3,18,0xff6b6b,"Nuestras peleas","Aunque discutimos, siempre encontramos la forma de volver a amarnos.")
+const jokes=createPlanet(1.4,23,0x9d4edd,"Nuestras bromas","Las risas contigo son de mis cosas favoritas.")
+const love=createPlanet(2,30,0x38d9a9,"Nuestro amor","A pesar de todo, siempre seguimos eligiéndonos.")
 
 const planets=[kiss,park,fights,jokes,love]
 
@@ -269,6 +272,45 @@ side:THREE.DoubleSide
 const ring=new THREE.Mesh(ringGeo,ringMat)
 ring.rotation.x=Math.PI/2
 love.add(ring)
+
+
+// ESTRELLAS FUGACES
+
+function shootingStar(){
+
+const geo=new THREE.SphereGeometry(0.2,8,8)
+const mat=new THREE.MeshBasicMaterial({color:0xffffff})
+
+const star=new THREE.Mesh(geo,mat)
+
+star.position.set(
+(Math.random()-0.5)*300,
+100,
+(Math.random()-0.5)*300
+)
+
+scene.add(star)
+
+let speed=4
+
+function move(){
+
+star.position.y-=speed
+star.position.x+=speed
+
+if(star.position.y<-100){
+scene.remove(star)
+}else{
+requestAnimationFrame(move)
+}
+
+}
+
+move()
+
+}
+
+setInterval(shootingStar,2500)
 
 
 // CONTROL MOUSE
@@ -290,8 +332,8 @@ function animate(){
 
 requestAnimationFrame(animate)
 
-camera.position.x += (mouseX - camera.position.x)*0.02
-camera.position.y += (-mouseY - camera.position.y)*0.02
+camera.position.x += (mouseX-camera.position.x)*0.02
+camera.position.y += (-mouseY-camera.position.y)*0.02
 
 planets.forEach(p=>{
 
@@ -344,15 +386,11 @@ p.position.z*1.6
 })
 
 
-// BOTON REGRESAR
+// BOTON VOLVER
 
 document.getElementById("homeBtn").onclick=function(){
 
-camera.position.set(
-homePosition.x,
-homePosition.y,
-homePosition.z
-)
+camera.position.set(homePosition.x,homePosition.y,homePosition.z)
 
 document.getElementById("panel").style.display="none"
 document.getElementById("homeBtn").style.display="none"
@@ -360,5 +398,6 @@ document.getElementById("homeBtn").style.display="none"
 }
 
 </script>
+
 </body>
 </html>
