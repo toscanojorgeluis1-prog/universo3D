@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>El Universo de Ale - Planetas Vivos</title>
+<title>El Universo de Ale - Planetas Tide Eye</title>
 <style>
 body { margin:0; overflow:hidden; background:black; font-family: Arial, sans-serif;}
 #panel { position:absolute; bottom:30px; left:50%; transform:translateX(-50%); background:rgba(0,0,0,0.85); color:white; padding:20px; border-radius:15px; display:none; max-width:420px; text-align:center;}
@@ -30,10 +30,10 @@ const homePosition = camera.position.clone();
 let targetPlanet = null;
 
 // ===== LUCES =====
-const sunLight = new THREE.PointLight(0xfff0aa, 4);
+const sunLight = new THREE.PointLight(0xfff0aa, 3); // un poco menos brillante
 sunLight.position.set(0,80,50);
 scene.add(sunLight);
-scene.add(new THREE.AmbientLight(0xffffff, 0.4));
+scene.add(new THREE.AmbientLight(0xffffff, 0.3)); // luz ambiental más sutil
 
 // ===== ESTRELLAS =====
 const starGeo = new THREE.BufferGeometry();
@@ -42,29 +42,29 @@ for(let i=0;i<20000;i++){
   starVertices.push((Math.random()-0.5)*4000, (Math.random()-0.5)*4000, (Math.random()-0.5)*4000);
 }
 starGeo.setAttribute('position', new THREE.Float32BufferAttribute(starVertices,3));
-const starMaterial = new THREE.PointsMaterial({color:0xffffff, size:1.5, transparent:true, opacity:0.8});
+const starMaterial = new THREE.PointsMaterial({color:0xaaaaaa, size:1.5, transparent:true, opacity:0.7});
 scene.add(new THREE.Points(starGeo, starMaterial));
 
-// ===== FUNCION PLANETA VIVO =====
+// ===== FUNCION PLANETA TIDE EYE =====
 function createPlanet(size, distance, baseColors, title, text, options={}){
   const canvas = document.createElement('canvas');
   canvas.width = 512;
   canvas.height = 512;
   const ctx = canvas.getContext('2d');
 
-  // Inicial gradient
+  // Gradiente radial con tonos oscuros y profundos
   const grad = ctx.createRadialGradient(256,256,50,256,256,256);
   grad.addColorStop(0, baseColors[0]);
   grad.addColorStop(1, baseColors[1]);
   ctx.fillStyle = grad;
   ctx.fillRect(0,0,512,512);
 
-  // “Manchas” aleatorias
-  for(let i=0;i<150;i++){
+  // “Manchas” sutiles
+  for(let i=0;i<120;i++){
     const x = Math.random()*512;
     const y = Math.random()*512;
-    const radius = Math.random()*10 + 5;
-    ctx.fillStyle = `rgba(255,255,255,${Math.random()*0.3})`;
+    const radius = Math.random()*8 + 3;
+    ctx.fillStyle = `rgba(255,255,255,${Math.random()*0.15})`;
     ctx.beginPath();
     ctx.arc(x,y,radius,0,Math.PI*2);
     ctx.fill();
@@ -76,8 +76,8 @@ function createPlanet(size, distance, baseColors, title, text, options={}){
   const geo = new THREE.SphereGeometry(size,64,64);
   const mat = new THREE.MeshPhongMaterial({
     map: texture,
-    shininess:80,
-    specular:0xaaaaaa
+    shininess:40, // menos brillante
+    specular:0x666666
   });
 
   const planet = new THREE.Mesh(geo, mat);
@@ -87,7 +87,7 @@ function createPlanet(size, distance, baseColors, title, text, options={}){
   // Nubes opcionales
   if(options.clouds){
     const cloudGeo = new THREE.SphereGeometry(size*1.02,64,64);
-    const cloudMat = new THREE.MeshPhongMaterial({ color:0xffffff, transparent:true, opacity:0.4, shininess:50 });
+    const cloudMat = new THREE.MeshPhongMaterial({ color:0xffffff, transparent:true, opacity:0.3, shininess:30 });
     const clouds = new THREE.Mesh(cloudGeo, cloudMat);
     planet.add(clouds);
     planet.userData.clouds = clouds;
@@ -96,7 +96,7 @@ function createPlanet(size, distance, baseColors, title, text, options={}){
   // Anillo opcional
   if(options.ring){
     const ringGeo = new THREE.RingGeometry(size*1.2, size*2, 64);
-    const ringMat = new THREE.MeshBasicMaterial({ color:0xffffaa, side:THREE.DoubleSide, transparent:true, opacity:0.6 });
+    const ringMat = new THREE.MeshBasicMaterial({ color:0x8888aa, side:THREE.DoubleSide, transparent:true, opacity:0.5 });
     const ringMesh = new THREE.Mesh(ringGeo, ringMat);
     ringMesh.rotation.x = -0.5*Math.PI;
     planet.add(ringMesh);
@@ -105,15 +105,15 @@ function createPlanet(size, distance, baseColors, title, text, options={}){
   return planet;
 }
 
-// ===== PLANETAS VIVOS =====
+// ===== PLANETAS TIDE EYE =====
 const planets = [
-  createPlanet(1.6,10,['#3fa9f5','#a2d4ff'],"Nuestro primer beso","El momento donde empezó nuestro universo.",{clouds:true}),
-  createPlanet(1.8,16,['#f57a3f','#ffb27a'],"Citas en el parque","Las tardes contigo en el parque siempre son especiales."),
-  createPlanet(1.5,22,['#f5e93f','#ffffa0'],"Tus bromas apestosas","Aunque a veces son terribles, siempre terminan haciéndome reír."),
-  createPlanet(2.0,28,['#a23ff5','#d8a2ff'],"Nuestras llamadas","Cada llamada contigo me recuerda cuánto significas para mí."),
-  createPlanet(1.7,34,['#3ff57a','#a0ffc4'],"Nuestras historias","Cada historia contigo es una página más de nuestra aventura."),
-  createPlanet(2.3,40,['#3ff5f0','#a0ffff'],"Nosotros","Tú y yo, siendo nosotros mismos."),
-  createPlanet(2.5,46,['#f5f53f','#ffffa0'],"El amor más fuerte que el mundo","Nuestro amor siempre encuentra la forma de seguir brillando.",{ring:true})
+  createPlanet(1.6,10,['#0f3a5d','#1f6a8c'],"Nuestro primer beso","El momento donde empezó nuestro universo.",{clouds:true}),
+  createPlanet(1.8,16,['#3a1f5d','#6a1f8c'],"Citas en el parque","Las tardes contigo en el parque siempre son especiales."),
+  createPlanet(1.5,22,['#1f5d3a','#3fa68c'],"Tus bromas apestosas","Aunque a veces son terribles, siempre terminan haciéndome reír."),
+  createPlanet(2.0,28,['#5d0f3a','#8c1f6a'],"Nuestras llamadas","Cada llamada contigo me recuerda cuánto significas para mí."),
+  createPlanet(1.7,34,['#0f5d5d','#1fa6a6'],"Nuestras historias","Cada historia contigo es una página más de nuestra aventura."),
+  createPlanet(2.3,40,['#1f1f5d','#3f3fa6'],"Nosotros","Tú y yo, siendo nosotros mismos."),
+  createPlanet(2.5,46,['#5d5d0f','#a6a61f'],"El amor más fuerte que el mundo","Nuestro amor siempre encuentra la forma de seguir brillando.",{ring:true})
 ];
 
 // ===== RAYCASTER =====
@@ -154,25 +154,23 @@ function animate(){
     p.rotation.y += 0.003 + Math.random()*0.001;
 
     // Nubes girando
-    if(p.userData.clouds) p.userData.clouds.rotation.y += 0.002;
+    if(p.userData.clouds) p.userData.clouds.rotation.y += 0.0015;
 
-    // Cambiar colores suavemente
+    // Cambiar colores suavemente con tonos oscuros
     const ctx = document.createElement('canvas').getContext('2d');
     const grad = ctx.createRadialGradient(256,256,50,256,256,256);
     const c1 = p.userData.baseColors[0];
     const c2 = p.userData.baseColors[1];
-    // animación de mezcla con seno
-    const blend = (Math.sin(time*2 + p.userData.distance)*0.5 +0.5);
+    const blend = (Math.sin(time*2 + p.userData.distance)*0.5 +0.5)*0.5 + 0.25; // menos saturado
     grad.addColorStop(0, blendColor(c1,c2,blend));
     grad.addColorStop(1, blendColor(c2,c1,blend));
     ctx.fillStyle = grad;
     ctx.fillRect(0,0,512,512);
-    // Manchas
-    for(let i=0;i<150;i++){
+    for(let i=0;i<120;i++){
       const x = Math.random()*512;
       const y = Math.random()*512;
-      const radius = Math.random()*10 + 5;
-      ctx.fillStyle = `rgba(255,255,255,${Math.random()*0.2})`;
+      const radius = Math.random()*8 + 3;
+      ctx.fillStyle = `rgba(255,255,255,${Math.random()*0.1})`;
       ctx.beginPath();
       ctx.arc(x,y,radius,0,Math.PI*2);
       ctx.fill();
@@ -190,7 +188,7 @@ function animate(){
   renderer.render(scene,camera);
 }
 
-// ===== FUNCION MEZCLAR COLORES =====
+// ===== MEZCLA DE COLORES =====
 function blendColor(c1, c2, t){
   const f=parseInt(c1.slice(1),16), g=parseInt(c2.slice(1),16);
   const r = Math.round(((f>>16)*(1-t)) + ((g>>16)*t));
