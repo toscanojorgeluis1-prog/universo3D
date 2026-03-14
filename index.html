@@ -14,6 +14,18 @@ background:black;
 font-family:Arial;
 }
 
+#intro{
+position:absolute;
+top:50%;
+left:50%;
+transform:translate(-50%,-50%);
+color:white;
+font-size:32px;
+text-align:center;
+opacity:1;
+transition:opacity 3s;
+}
+
 #panel{
 position:absolute;
 bottom:40px;
@@ -47,6 +59,11 @@ display:none;
 
 <body>
 
+<div id="intro">
+Para Ale ✨<br><br>
+Un pequeño universo de recuerdos
+</div>
+
 <button id="homeBtn">Volver al universo</button>
 
 <div id="panel">
@@ -70,16 +87,17 @@ window.innerWidth/window.innerHeight,
 const renderer=new THREE.WebGLRenderer({antialias:true})
 renderer.setSize(window.innerWidth,window.innerHeight)
 renderer.setPixelRatio(window.devicePixelRatio)
+
 document.body.appendChild(renderer.domElement)
 
-camera.position.set(0,12,40)
+camera.position.set(0,12,45)
 
 const textureLoader=new THREE.TextureLoader()
 
 let targetPlanet=null
 let cameraAngle=0
 
-const homePosition=new THREE.Vector3(0,12,40)
+const homePosition=new THREE.Vector3(0,12,45)
 
 
 // LUCES
@@ -91,7 +109,7 @@ const ambient=new THREE.AmbientLight(0x666666)
 scene.add(ambient)
 
 
-// GALAXIA ESPIRAL
+// GALAXIA
 
 const galaxyGeo=new THREE.BufferGeometry()
 
@@ -116,7 +134,7 @@ new THREE.Float32BufferAttribute(galaxyVertices,3)
 )
 
 const galaxyMat=new THREE.PointsMaterial({
-color:0xffddff,
+color:0xffccff,
 size:1
 })
 
@@ -156,6 +174,16 @@ const stars=new THREE.Points(starGeo,starMat)
 scene.add(stars)
 
 
-// POLVO ESPACIAL
+// CONSTELACION ALE
 
-const dustGeo=new THREE.BufferGeometry
+const constellationGeo=new THREE.BufferGeometry()
+
+const nameStars=[]
+
+const name="ALE"
+
+for(let i=0;i<name.length;i++){
+
+const x=i*8-10
+
+for(let j=0
