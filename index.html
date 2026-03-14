@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
+<meta charset="utf-8">
 <title>Nuestro Universo</title>
 
 <style>
@@ -8,6 +9,7 @@
 body{
 margin:0;
 overflow:hidden;
+background:black;
 font-family:Arial;
 }
 
@@ -21,14 +23,9 @@ color:white;
 padding:20px;
 border-radius:15px;
 display:none;
-max-width:400px;
+max-width:420px;
 text-align:center;
-}
-
-#panel img{
-width:100%;
-border-radius:10px;
-margin-top:10px;
+backdrop-filter:blur(10px);
 }
 
 </style>
@@ -51,65 +48,106 @@ const camera = new THREE.PerspectiveCamera(
 75,
 window.innerWidth/window.innerHeight,
 0.1,
-2000
+10000
 )
 
 const renderer = new THREE.WebGLRenderer({antialias:true})
+
 renderer.setSize(window.innerWidth,window.innerHeight)
+
+renderer.setPixelRatio(window.devicePixelRatio)
 
 document.body.appendChild(renderer.domElement)
 
-camera.position.z=20
+camera.position.set(0,10,30)
 
-// estrellas
 
-const starGeometry=new THREE.BufferGeometry()
-const starVertices=[]
-
-for(let i=0;i<8000;i++){
-
-const x=(Math.random()-0.5)*2000
-const y=(Math.random()-0.5)*2000
-const z=(Math.random()-0.5)*2000
-
-starVertices.push(x,y,z)
-
-}
-
-starGeometry.setAttribute(
-'position',
-new THREE.Float32BufferAttribute(starVertices,3)
-)
-
-const starMaterial=new THREE.PointsMaterial({color:0xffffff})
-
-const stars=new THREE.Points(starGeometry,starMaterial)
-
-scene.add(stars)
-
-// luz
+// LUCES
 
 const light=new THREE.PointLight(0xffffff,2)
 
 scene.add(light)
 
-// sol
+const ambient=new THREE.AmbientLight(0x888888)
 
-const sunGeometry=new THREE.SphereGeometry(2,32,32)
+scene.add(ambient)
 
-const sunMaterial=new THREE.MeshBasicMaterial({color:0xffaa00})
 
-const sun=new THREE.Mesh(sunGeometry,sunMaterial)
+// SOL
+
+const sunGeo=new THREE.SphereGeometry(4,64,64)
+
+const sunMat=new THREE.MeshBasicMaterial({color:0xffcc66})
+
+const sun=new THREE.Mesh(sunGeo,sunMat)
 
 scene.add(sun)
 
-// crear planetas
 
-function createPlanet(size,distance,color,title,text){
+// GALAXIA ESPIRAL
 
-const geometry=new THREE.SphereGeometry(size,32,32)
+const galaxyGeo=new THREE.BufferGeometry()
 
-const material=new THREE.MeshStandardMaterial({color:color})
+const vertices=[]
+
+for(let i=0;i<50000;i++){
+
+let r=Math.random()*800
+
+let angle=r*0.05
+
+let x=Math.cos(angle)*r+(Math.random()-0.5)*30
+let y=(Math.random()-0.5)*20
+let z=Math.sin(angle)*r+(Math.random()-0.5)*30
+
+vertices.push(x,y,z)
+
+}
+
+galaxyGeo.setAttribute(
+'position',
+new THREE.Float32BufferAttribute(vertices,3)
+)
+
+const galaxyMat=new THREE.PointsMaterial({
+color:0xffffff,
+size:1
+})
+
+const galaxy=new THREE.Points(galaxyGeo,galaxyMat)
+
+scene.add(galaxy)
+
+
+// NEBULOSA
+
+const nebulaGeo=new THREE.SphereGeometry(900,32,32)
+
+const nebulaMat=new THREE.MeshBasicMaterial({
+map:new THREE.TextureLoader().load(
+"https://threejs.org/examples/textures/planets/earth_clouds_1024.png"
+),
+side:THREE.BackSide,
+transparent:true,
+opacity:0.2
+})
+
+const nebula=new THREE.Mesh(nebulaGeo,nebulaMat)
+
+scene.add(nebula)
+
+
+// PLANETAS
+
+function createPlanet(size,distance,texture,title,text){
+
+const geometry=new THREE.SphereGeometry(size,64,64)
+
+const textureLoader=new THREE.TextureLoader()
+
+const material=new THREE.MeshStandardMaterial({
+map:textureLoader.load(texture)
+})
 
 const planet=new THREE.Mesh(geometry,material)
 
@@ -126,65 +164,85 @@ return planet
 
 }
 
-const planet1=createPlanet(
-0.6,
-4,
-0x8844ff,
+
+const earth=createPlanet(
+1.5,
+8,
+"https://threejs.org/examples/textures/planets/earth_atmos_2048.jpg",
 "Nuestro primer beso",
-"El día en que comenzó nuestro universo."
+"El momento donde comenzó nuestro universo."
 )
 
-const planet2=createPlanet(
-0.7,
-7,
-0x44ff88,
-"Nuestra primera cita",
-"Cuando entendí que quería más momentos contigo."
-)
-
-const planet3=createPlanet(
-0.9,
-10,
-0xff4488,
-"Cuando me enamoré",
-"Aquí supe que eres única para mí."
-)
-
-const planet4=createPlanet(
+const mars=createPlanet(
 1.2,
-14,
-0x4488ff,
-"El planeta secreto",
-"Los mejores recuerdos contigo aún no existen… porque aún tenemos un universo por descubrir."
+13,
+"https://threejs.org/examples/textures/planets/mars_1024.jpg",
+"Nuestra primera cita",
+"El día que supe que quería más momentos contigo."
 )
 
-const planets=[planet1,planet2,planet3,planet4]
+const saturn=createPlanet(
+2,
+20,
+"https://threejs.org/examples/textures/planets/jupiter.jpg",
+"Cuando me enamoré",
+"El día que entendí que eres única."
+)
 
-// estrellas fugaces
+
+// ANILLOS DE SATURNO
+
+const ringGeo=new THREE.RingGeometry(2.8,4,64)
+
+const ringMat=new THREE.MeshBasicMaterial({
+color:0xaaaaaa,
+side:THREE.DoubleSide
+})
+
+const ring=new THREE.Mesh(ringGeo,ringMat)
+
+ring.rotation.x=Math.PI/2
+
+saturn.add(ring)
+
+
+const future=createPlanet(
+1.7,
+28,
+"https://threejs.org/examples/textures/planets/venus.jpg",
+"Nuestro futuro",
+"Los mejores recuerdos contigo todavía no existen."
+)
+
+const planets=[earth,mars,saturn,future]
+
+
+// ESTRELLAS FUGACES
 
 function shootingStar(){
 
-const geometry=new THREE.SphereGeometry(0.1,8,8)
-const material=new THREE.MeshBasicMaterial({color:0xffffff})
+const geo=new THREE.SphereGeometry(0.2,8,8)
 
-const star=new THREE.Mesh(geometry,material)
+const mat=new THREE.MeshBasicMaterial({color:0xffffff})
+
+const star=new THREE.Mesh(geo,mat)
 
 star.position.set(
-(Math.random()-0.5)*200,
-50,
-(Math.random()-0.5)*200
+(Math.random()-0.5)*300,
+100,
+(Math.random()-0.5)*300
 )
 
 scene.add(star)
 
-let speed=1+Math.random()
+let speed=4
 
 function move(){
 
 star.position.y-=speed
 star.position.x+=speed
 
-if(star.position.y<-50){
+if(star.position.y<-100){
 scene.remove(star)
 }else{
 requestAnimationFrame(move)
@@ -196,9 +254,10 @@ move()
 
 }
 
-setInterval(shootingStar,3000)
+setInterval(shootingStar,2500)
 
-// animación
+
+// ANIMACION
 
 function animate(){
 
@@ -206,12 +265,15 @@ requestAnimationFrame(animate)
 
 planets.forEach(p=>{
 
-p.userData.angle+=0.01
+p.userData.angle+=0.002
 
 p.position.x=Math.cos(p.userData.angle)*p.userData.distance
 p.position.z=Math.sin(p.userData.angle)*p.userData.distance
 
 })
+
+galaxy.rotation.y+=0.0003
+nebula.rotation.y+=0.0001
 
 renderer.render(scene,camera)
 
@@ -219,12 +281,14 @@ renderer.render(scene,camera)
 
 animate()
 
-// click en planetas
+
+// CLICK PLANETAS
 
 const raycaster=new THREE.Raycaster()
+
 const mouse=new THREE.Vector2()
 
-window.addEventListener('click',event=>{
+window.addEventListener("click",event=>{
 
 mouse.x=(event.clientX/window.innerWidth)*2-1
 mouse.y=-(event.clientY/window.innerHeight)*2+1
@@ -235,15 +299,19 @@ const intersects=raycaster.intersectObjects(planets)
 
 if(intersects.length>0){
 
-let planet=intersects[0].object
+let p=intersects[0].object
 
 document.getElementById("panel").style.display="block"
 
-document.getElementById("title").innerText=
-planet.userData.title
+document.getElementById("title").innerText=p.userData.title
 
-document.getElementById("text").innerText=
-planet.userData.text
+document.getElementById("text").innerText=p.userData.text
+
+camera.position.set(
+p.position.x*1.6,
+p.position.y+3,
+p.position.z*1.6
+)
 
 }
 
