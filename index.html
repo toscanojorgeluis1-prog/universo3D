@@ -6,6 +6,7 @@
 <title>Universo para Ale</title>
 
 <style>
+
 body{
 margin:0;
 overflow:hidden;
@@ -39,6 +40,7 @@ border-radius:10px;
 cursor:pointer;
 display:none;
 }
+
 </style>
 
 </head>
@@ -72,30 +74,27 @@ document.body.appendChild(renderer.domElement)
 
 camera.position.set(0,10,35)
 
-const loader = new THREE.TextureLoader()
-
 let targetPlanet=null
 
 const homePosition = new THREE.Vector3(0,10,35)
 
 
-// LUCES (mejoradas)
+// LUCES MUCHO MÁS FUERTES
 
-const light = new THREE.PointLight(0xffffff,3)
-light.position.set(0,20,20)
-scene.add(light)
+const sunLight = new THREE.PointLight(0xffffff,4)
+sunLight.position.set(0,30,20)
+scene.add(sunLight)
 
-const ambient = new THREE.AmbientLight(0xffffff,0.8)
+const ambient = new THREE.AmbientLight(0xffffff,1)
 scene.add(ambient)
 
 
 // ESTRELLAS
 
 const starGeometry = new THREE.BufferGeometry()
-
 const starVertices=[]
 
-for(let i=0;i<35000;i++){
+for(let i=0;i<40000;i++){
 
 starVertices.push(
 (Math.random()-0.5)*2000,
@@ -112,21 +111,21 @@ new THREE.Float32BufferAttribute(starVertices,3)
 
 const starMaterial = new THREE.PointsMaterial({
 color:0xffffff,
-size:0.8
+size:0.9
 })
 
 const stars = new THREE.Points(starGeometry,starMaterial)
 scene.add(stars)
 
 
-// CREAR PLANETA
+// CREAR PLANETA (con color base)
 
-function createPlanet(size,distance,texture,title,text){
+function createPlanet(size,distance,color,title,text){
 
 const geometry = new THREE.SphereGeometry(size,64,64)
 
 const material = new THREE.MeshPhongMaterial({
-map: loader.load(texture)
+color:color
 })
 
 const planet = new THREE.Mesh(geometry,material)
@@ -160,14 +159,14 @@ return planet
 }
 
 
-// PLANETAS
+// PLANETAS (colores bonitos)
 
 const planets=[]
 
 planets.push(createPlanet(
 1.5,
 8,
-"https://threejs.org/examples/textures/planets/venus.jpg",
+0xff6699,
 "Nuestro primer beso",
 "El momento donde empezó todo nuestro universo."
 ))
@@ -175,7 +174,7 @@ planets.push(createPlanet(
 planets.push(createPlanet(
 1.7,
 13,
-"https://threejs.org/examples/textures/planets/earth_atmos_2048.jpg",
+0x3399ff,
 "Citas en el parque",
 "Los momentos tranquilos contigo siempre se quedan en mi corazón."
 ))
@@ -183,95 +182,6 @@ planets.push(createPlanet(
 planets.push(createPlanet(
 1.4,
 18,
-"https://threejs.org/examples/textures/planets/mars_1k_color.jpg",
+0xff9933,
 "Tus bromas apestosa",
-"Aunque a veces son terribles, siempre terminan haciéndome reír."
-))
-
-planets.push(createPlanet(
-1.8,
-23,
-"https://threejs.org/examples/textures/planets/jupiter.jpg",
-"Nuestras llamadas",
-"Cada llamada contigo es un recordatorio de que siempre estás ahí."
-))
-
-planets.push(createPlanet(
-1.6,
-28,
-"https://threejs.org/examples/textures/planets/mercury.jpg",
-"Nuestras historias",
-"Las historias que hemos vivido juntos son las que quiero seguir escribiendo."
-))
-
-planets.push(createPlanet(
-2.1,
-33,
-"https://threejs.org/examples/textures/planets/neptune.jpg",
-"Nosotros",
-"Tú y yo, simplemente siendo nosotros."
-))
-
-planets.push(createPlanet(
-2.3,
-38,
-"https://threejs.org/examples/textures/planets/saturn.jpg",
-"El amor más fuerte que el mundo",
-"Nuestro amor siempre encuentra la forma de seguir brillando."
-))
-
-
-// CLICK PLANETAS
-
-const raycaster = new THREE.Raycaster()
-const mouse = new THREE.Vector2()
-
-window.addEventListener("click",event=>{
-
-mouse.x=(event.clientX/window.innerWidth)*2-1
-mouse.y=-(event.clientY/window.innerHeight)*2+1
-
-raycaster.setFromCamera(mouse,camera)
-
-const intersects=raycaster.intersectObjects(planets)
-
-if(intersects.length>0){
-
-targetPlanet=intersects[0].object
-
-document.getElementById("panel").style.display="block"
-document.getElementById("homeBtn").style.display="block"
-
-document.getElementById("title").innerText=targetPlanet.userData.title
-document.getElementById("text").innerText=targetPlanet.userData.text
-
-}
-
-})
-
-
-// BOTON VOLVER
-
-document.getElementById("homeBtn").onclick=function(){
-
-targetPlanet=null
-
-camera.position.copy(homePosition)
-
-document.getElementById("panel").style.display="none"
-document.getElementById("homeBtn").style.display="none"
-
-}
-
-
-// ANIMACION
-
-function animate(){
-
-requestAnimationFrame(animate)
-
-planets.forEach(p=>{
-
-p.userData.angle+=0.002
-
-p.position.x=Math.cos(p.userData.angle)*p.userDa*
+"Aunq
