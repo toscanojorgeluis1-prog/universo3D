@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>El Universo de Ale - Texturas completas</title>
+<title>El Universo de Ale - Texturas Correctas</title>
 <style>
 body { margin:0; overflow:hidden; background:black; font-family: Arial, sans-serif;}
 #panel { position:absolute; bottom:30px; left:50%; transform:translateX(-50%); background:rgba(0,0,0,0.85); color:white; padding:20px; border-radius:15px; display:none; max-width:420px; text-align:center;}
@@ -17,94 +17,79 @@ body { margin:0; overflow:hidden; background:black; font-family: Arial, sans-ser
   <p id="text"></p>
 </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
 <script>
-// =====================
-// ESCENA, CÁMARA Y RENDER
-// =====================
+
+// ===== ESCENA, CÁMARA Y RENDER =====
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 4000);
 const renderer = new THREE.WebGLRenderer({antialias:true});
 renderer.setSize(window.innerWidth, window.innerHeight);
-renderer.setPixelRatio(window.devicePixelRatio);
 document.body.appendChild(renderer.domElement);
-camera.position.set(0, 30, 70);
+camera.position.set(0,30,70);
 const homePosition = camera.position.clone();
 let targetPlanet = null;
 
-// =====================
-// LUCES
-// =====================
+// ===== LUCES =====
 const sunLight = new THREE.PointLight(0xffffff, 5);
 sunLight.position.set(0,80,50);
 scene.add(sunLight);
 scene.add(new THREE.AmbientLight(0xffffff, 0.3));
 
-// =====================
-// ESTRELLAS DINÁMICAS
-// =====================
+// ===== ESTRELLAS =====
 const starGeo = new THREE.BufferGeometry();
 const starVertices = [];
-for(let i=0;i<80000;i++){
-  starVertices.push(
-    (Math.random()-0.5)*4000,
-    (Math.random()-0.5)*4000,
-    (Math.random()-0.5)*4000
-  );
+for(let i=0;i<50000;i++){
+  starVertices.push((Math.random()-0.5)*4000, (Math.random()-0.5)*4000, (Math.random()-0.5)*4000);
 }
 starGeo.setAttribute('position', new THREE.Float32BufferAttribute(starVertices,3));
-const starMaterial = new THREE.PointsMaterial({color:0xffffff, size:1.2, transparent:true});
+const starMaterial = new THREE.PointsMaterial({color:0xffffff, size:1.2});
 const stars = new THREE.Points(starGeo, starMaterial);
 scene.add(stars);
 
-// =====================
-// TEXTURAS DE PLANETAS
-// =====================
+// ===== TEXTURAS FUNCIONALES =====
 const loader = new THREE.TextureLoader();
 const textures = {
-  earthColor: loader.load('https://threejsfundamentals.org/threejs/resources/images/earth-day.jpg'),
-  earthBump: loader.load('https://threejsfundamentals.org/threejs/resources/images/earthbump1k.jpg'),
-  earthClouds: loader.load('https://threejsfundamentals.org/threejs/resources/images/earth-clouds.png'),
+  earth: loader.load('https://threejs.org/examples/textures/planets/earth_atmos_2048.jpg'),
+  earthBump: loader.load('https://threejs.org/examples/textures/planets/earthbump1k.jpg'),
+  earthClouds: loader.load('https://threejs.org/examples/textures/planets/earthcloudmaptrans.jpg'),
+  
+  mars: loader.load('https://threejs.org/examples/textures/planets/mars_1k_color.jpg'),
+  marsBump: loader.load('https://threejs.org/examples/textures/planets/mars_1k_bump.jpg'),
 
-  marsColor: loader.load('https://threejsfundamentals.org/threejs/resources/images/mars_1k_color.jpg'),
-  marsBump: loader.load('https://threejsfundamentals.org/threejs/resources/images/mars_1k_bump.jpg'),
+  jupiter: loader.load('https://threejs.org/examples/textures/planets/jupiter2_1k.jpg'),
+  jupiterBump: loader.load('https://threejs.org/examples/textures/planets/jupiter2_1k.jpg'),
 
-  jupiterColor: loader.load('https://threejsfundamentals.org/threejs/resources/images/jupiter2_1k.jpg'),
-  jupiterBump: loader.load('https://threejsfundamentals.org/threejs/resources/images/jupiter2_1k.jpg'),
-
-  venusColor: loader.load('https://threejsfundamentals.org/threejs/resources/images/venus.jpg'),
-  mercuryColor: loader.load('https://threejsfundamentals.org/threejs/resources/images/mercury.jpg'),
-  neptuneColor: loader.load('https://threejsfundamentals.org/threejs/resources/images/neptune.jpg'),
-  saturnColor: loader.load('https://threejsfundamentals.org/threejs/resources/images/saturn.jpg'),
-  ring: loader.load('https://threejsfundamentals.org/threejs/resources/images/saturnringcolor.jpg')
+  venus: loader.load('https://threejs.org/examples/textures/planets/venus.jpg'),
+  mercury: loader.load('https://threejs.org/examples/textures/planets/mercury.jpg'),
+  neptune: loader.load('https://threejs.org/examples/textures/planets/neptune.jpg'),
+  saturn: loader.load('https://threejs.org/examples/textures/planets/saturn.jpg'),
+  ring: loader.load('https://threejs.org/examples/textures/planets/saturnringcolor.jpg')
 };
 
-// =====================
-// FUNCION CREAR PLANETA
-// =====================
+// ===== FUNCION CREAR PLANETA =====
 function createPlanet(size, distance, colorMap, bumpMap, title, text, options={}){
-  const geometry = new THREE.SphereGeometry(size,64,64);
-  const materialOptions = { map: colorMap, roughness:1, metalness:0 };
-  if(bumpMap) materialOptions.bumpMap = bumpMap;
-  if(bumpMap) materialOptions.bumpScale = 0.2;
-  const material = new THREE.MeshStandardMaterial(materialOptions);
-  const planet = new THREE.Mesh(geometry, material);
-  planet.userData = {distance, angle:Math.random()*Math.PI*2, title, text};
+  const geo = new THREE.SphereGeometry(size,64,64);
+  const matOptions = { map: colorMap, roughness:1, metalness:0 };
+  if(bumpMap){ matOptions.bumpMap = bumpMap; matOptions.bumpScale=0.2; }
+  const mat = new THREE.MeshStandardMaterial(matOptions);
+  const planet = new THREE.Mesh(geo, mat);
+  planet.userData = { distance, angle:Math.random()*Math.PI*2, title, text };
   scene.add(planet);
 
   // Nubes
   if(options.clouds){
     const cloudGeo = new THREE.SphereGeometry(size*1.01,64,64);
-    const cloudMat = new THREE.MeshPhongMaterial({ map: textures.earthClouds, transparent:true, opacity:0.4, depthWrite:false });
+    const cloudMat = new THREE.MeshPhongMaterial({ map: textures.earthClouds, transparent:true, opacity:0.4 });
     const clouds = new THREE.Mesh(cloudGeo, cloudMat);
     planet.add(clouds);
     planet.userData.clouds = clouds;
   }
 
-  // Anillos
+  // Anillo
   if(options.ring){
     const ringGeo = new THREE.RingGeometry(size*1.2, size*2, 64);
-    const ringMat = new THREE.MeshBasicMaterial({ map: textures.ring, side:THREE.DoubleSide, transparent:true, opacity:0.8 });
+    const ringMat = new THREE.MeshBasicMaterial({ map:textures.ring, side:THREE.DoubleSide, transparent:true, opacity:0.8 });
     const ringMesh = new THREE.Mesh(ringGeo, ringMat);
     ringMesh.rotation.x = -0.5*Math.PI;
     planet.add(ringMesh);
@@ -113,22 +98,18 @@ function createPlanet(size, distance, colorMap, bumpMap, title, text, options={}
   return planet;
 }
 
-// =====================
-// PLANETAS
-// =====================
+// ===== PLANETAS =====
 const planets = [
-  createPlanet(1.6,10,textures.earthColor,textures.earthBump,"Nuestro primer beso","El momento donde empezó nuestro universo.", {clouds:true}),
-  createPlanet(1.8,16,textures.marsColor,textures.marsBump,"Citas en el parque","Las tardes contigo en el parque siempre son especiales."),
-  createPlanet(1.5,22,textures.jupiterColor,textures.jupiterBump,"Tus bromas apestosas","Aunque a veces son terribles, siempre terminan haciéndome reír."),
-  createPlanet(2.0,28,textures.venusColor,null,"Nuestras llamadas","Cada llamada contigo me recuerda cuánto significas para mí."),
-  createPlanet(1.7,34,textures.mercuryColor,null,"Nuestras historias","Cada historia contigo es una página más de nuestra aventura."),
-  createPlanet(2.3,40,textures.neptuneColor,null,"Nosotros","Tú y yo, siendo nosotros mismos."),
-  createPlanet(2.5,46,textures.saturnColor,null,"El amor más fuerte que el mundo","Nuestro amor siempre encuentra la forma de seguir brillando.", {ring:true})
+  createPlanet(1.6,10,textures.earth,textures.earthBump,"Nuestro primer beso","El momento donde empezó nuestro universo.",{clouds:true}),
+  createPlanet(1.8,16,textures.mars,textures.marsBump,"Citas en el parque","Las tardes contigo en el parque siempre son especiales."),
+  createPlanet(1.5,22,textures.jupiter,textures.jupiterBump,"Tus bromas apestosas","Aunque a veces son terribles, siempre terminan haciéndome reír."),
+  createPlanet(2.0,28,textures.venus,null,"Nuestras llamadas","Cada llamada contigo me recuerda cuánto significas para mí."),
+  createPlanet(1.7,34,textures.mercury,null,"Nuestras historias","Cada historia contigo es una página más de nuestra aventura."),
+  createPlanet(2.3,40,textures.neptune,null,"Nosotros","Tú y yo, siendo nosotros mismos."),
+  createPlanet(2.5,46,textures.saturn,null,"El amor más fuerte que el mundo","Nuestro amor siempre encuentra la forma de seguir brillando.",{ring:true})
 ];
 
-// =====================
-// RAYCASTER
-// =====================
+// ===== RAYCASTER =====
 const raycaster = new THREE.Raycaster();
 const mouse = new THREE.Vector2();
 window.addEventListener("click",(event)=>{
@@ -138,16 +119,14 @@ window.addEventListener("click",(event)=>{
   const intersects = raycaster.intersectObjects(planets);
   if(intersects.length>0){
     targetPlanet = intersects[0].object;
-    document.getElementById("panel").style.display = "block";
-    document.getElementById("homeBtn").style.display = "block";
+    document.getElementById("panel").style.display="block";
+    document.getElementById("homeBtn").style.display="block";
     document.getElementById("title").innerText = targetPlanet.userData.title;
     document.getElementById("text").innerText = targetPlanet.userData.text;
   }
 });
 
-// =====================
-// BOTÓN VOLVER
-// =====================
+// ===== BOTON VOLVER =====
 document.getElementById("homeBtn").onclick = ()=>{
   targetPlanet=null;
   camera.position.copy(homePosition);
@@ -155,9 +134,7 @@ document.getElementById("homeBtn").onclick = ()=>{
   document.getElementById("homeBtn").style.display="none";
 };
 
-// =====================
-// ANIMACIÓN
-// =====================
+// ===== ANIMACION =====
 function animate(){
   requestAnimationFrame(animate);
   planets.forEach(p=>{
@@ -168,23 +145,21 @@ function animate(){
     if(p.userData.clouds) p.userData.clouds.rotation.y += 0.002;
   });
   if(targetPlanet){
-    const desiredPos = new THREE.Vector3(targetPlanet.position.x+6, targetPlanet.position.y+3, targetPlanet.position.z+6);
-    camera.position.lerp(desiredPos,0.05);
+    const pos = new THREE.Vector3(targetPlanet.position.x+6,targetPlanet.position.y+3,targetPlanet.position.z+6);
+    camera.position.lerp(pos,0.05);
     camera.lookAt(targetPlanet.position);
   }
-  starMaterial.opacity = 0.8 + Math.random()*0.2;
   renderer.render(scene,camera);
 }
 animate();
 
-// =====================
-// AJUSTE VENTANA
-// =====================
+// ===== AJUSTE VENTANA =====
 window.addEventListener('resize',()=>{
   camera.aspect = window.innerWidth/window.innerHeight;
   camera.updateProjectionMatrix();
   renderer.setSize(window.innerWidth,window.innerHeight);
 });
+
 </script>
 </body>
 </html>
