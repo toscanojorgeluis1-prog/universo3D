@@ -39,7 +39,6 @@ border-radius:10px;
 cursor:pointer;
 display:none;
 }
-
 </style>
 
 </head>
@@ -69,7 +68,6 @@ window.innerWidth/window.innerHeight,
 const renderer = new THREE.WebGLRenderer({antialias:true})
 renderer.setSize(window.innerWidth,window.innerHeight)
 renderer.setPixelRatio(window.devicePixelRatio)
-
 document.body.appendChild(renderer.domElement)
 
 camera.position.set(0,10,35)
@@ -81,12 +79,13 @@ let targetPlanet=null
 const homePosition = new THREE.Vector3(0,10,35)
 
 
-// LUCES
+// LUCES (mejoradas)
 
-const light = new THREE.PointLight(0xffffff,2)
+const light = new THREE.PointLight(0xffffff,3)
+light.position.set(0,20,20)
 scene.add(light)
 
-const ambient = new THREE.AmbientLight(0x666666)
+const ambient = new THREE.AmbientLight(0xffffff,0.8)
 scene.add(ambient)
 
 
@@ -96,7 +95,7 @@ const starGeometry = new THREE.BufferGeometry()
 
 const starVertices=[]
 
-for(let i=0;i<30000;i++){
+for(let i=0;i<35000;i++){
 
 starVertices.push(
 (Math.random()-0.5)*2000,
@@ -113,25 +112,24 @@ new THREE.Float32BufferAttribute(starVertices,3)
 
 const starMaterial = new THREE.PointsMaterial({
 color:0xffffff,
-size:0.7
+size:0.8
 })
 
 const stars = new THREE.Points(starGeometry,starMaterial)
-
 scene.add(stars)
 
 
-// FUNCION PLANETA
+// CREAR PLANETA
 
 function createPlanet(size,distance,texture,title,text){
 
-const geo = new THREE.SphereGeometry(size,64,64)
+const geometry = new THREE.SphereGeometry(size,64,64)
 
-const mat = new THREE.MeshStandardMaterial({
+const material = new THREE.MeshPhongMaterial({
 map: loader.load(texture)
 })
 
-const planet = new THREE.Mesh(geo,mat)
+const planet = new THREE.Mesh(geometry,material)
 
 planet.userData={
 distance:distance,
@@ -141,6 +139,21 @@ text:text
 }
 
 scene.add(planet)
+
+
+// ATMOSFERA
+
+const glowGeo = new THREE.SphereGeometry(size*1.05,64,64)
+
+const glowMat = new THREE.MeshBasicMaterial({
+color:0x88ccff,
+transparent:true,
+opacity:0.25
+})
+
+const glow = new THREE.Mesh(glowGeo,glowMat)
+
+planet.add(glow)
 
 return planet
 
@@ -261,34 +274,4 @@ planets.forEach(p=>{
 
 p.userData.angle+=0.002
 
-p.position.x=Math.cos(p.userData.angle)*p.userData.distance
-p.position.z=Math.sin(p.userData.angle)*p.userData.distance
-
-p.rotation.y+=0.003
-
-})
-
-if(targetPlanet){
-
-camera.position.lerp(
-new THREE.Vector3(
-targetPlanet.position.x+6,
-targetPlanet.position.y+2,
-targetPlanet.position.z+6
-),0.05
-)
-
-camera.lookAt(targetPlanet.position)
-
-}
-
-renderer.render(scene,camera)
-
-}
-
-animate()
-
-</script>
-
-</body>
-</html>
+p.position.x=Math.cos(p.userData.angle)*p.userDa*
