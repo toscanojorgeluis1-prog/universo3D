@@ -18,14 +18,18 @@ position:absolute;
 bottom:40px;
 left:50%;
 transform:translateX(-50%);
-background:rgba(0,0,0,0.85);
+background:rgba(0,0,0,0.9);
 color:white;
-padding:20px;
+padding:25px;
 border-radius:15px;
 display:none;
 max-width:420px;
 text-align:center;
-backdrop-filter:blur(10px);
+}
+
+#title{
+font-size:22px;
+margin-bottom:10px;
 }
 
 </style>
@@ -37,6 +41,10 @@ backdrop-filter:blur(10px);
 <h2 id="title"></h2>
 <p id="text"></p>
 </div>
+
+<audio autoplay loop>
+<source src="music.mp3">
+</audio>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 
@@ -55,8 +63,6 @@ const renderer = new THREE.WebGLRenderer({antialias:true})
 
 renderer.setSize(window.innerWidth,window.innerHeight)
 
-renderer.setPixelRatio(window.devicePixelRatio)
-
 document.body.appendChild(renderer.domElement)
 
 camera.position.set(0,10,30)
@@ -65,91 +71,98 @@ camera.position.set(0,10,30)
 // LUCES
 
 const light=new THREE.PointLight(0xffffff,2)
-
 scene.add(light)
 
 const ambient=new THREE.AmbientLight(0x888888)
-
 scene.add(ambient)
 
 
 // SOL
 
 const sunGeo=new THREE.SphereGeometry(4,64,64)
-
 const sunMat=new THREE.MeshBasicMaterial({color:0xffcc66})
-
 const sun=new THREE.Mesh(sunGeo,sunMat)
 
 scene.add(sun)
 
 
-// GALAXIA ESPIRAL
+// ESTRELLAS
 
-const galaxyGeo=new THREE.BufferGeometry()
+const starGeo=new THREE.BufferGeometry()
+const starVertices=[]
 
-const vertices=[]
+for(let i=0;i<40000;i++){
 
-for(let i=0;i<50000;i++){
+let x=(Math.random()-0.5)*2000
+let y=(Math.random()-0.5)*2000
+let z=(Math.random()-0.5)*2000
 
-let r=Math.random()*800
-
-let angle=r*0.05
-
-let x=Math.cos(angle)*r+(Math.random()-0.5)*30
-let y=(Math.random()-0.5)*20
-let z=Math.sin(angle)*r+(Math.random()-0.5)*30
-
-vertices.push(x,y,z)
+starVertices.push(x,y,z)
 
 }
 
-galaxyGeo.setAttribute(
+starGeo.setAttribute(
+'position',
+new THREE.Float32BufferAttribute(starVertices,3)
+)
+
+const starMat=new THREE.PointsMaterial({
+color:0xffffff,
+size:0.7,
+transparent:true
+})
+
+const stars=new THREE.Points(starGeo,starMat)
+
+scene.add(stars)
+
+
+// CONSTELACION (nombre)
+
+function createName(){
+
+const geometry=new THREE.BufferGeometry()
+
+const vertices=[
+0,60,0,
+5,65,0,
+10,60,0,
+15,65,0,
+20,60,0
+]
+
+geometry.setAttribute(
 'position',
 new THREE.Float32BufferAttribute(vertices,3)
 )
 
-const galaxyMat=new THREE.PointsMaterial({
-color:0xffffff,
-size:1
+const material=new THREE.PointsMaterial({
+color:0xff88ff,
+size:2
 })
 
-const galaxy=new THREE.Points(galaxyGeo,galaxyMat)
+const nameStars=new THREE.Points(geometry,material)
 
-scene.add(galaxy)
+scene.add(nameStars)
 
+}
 
-// NEBULOSA
-
-const nebulaGeo=new THREE.SphereGeometry(900,32,32)
-
-const nebulaMat=new THREE.MeshBasicMaterial({
-map:new THREE.TextureLoader().load(
-"https://threejs.org/examples/textures/planets/earth_clouds_1024.png"
-),
-side:THREE.BackSide,
-transparent:true,
-opacity:0.2
-})
-
-const nebula=new THREE.Mesh(nebulaGeo,nebulaMat)
-
-scene.add(nebula)
+createName()
 
 
 // PLANETAS
 
 function createPlanet(size,distance,texture,title,text){
 
-const geometry=new THREE.SphereGeometry(size,64,64)
+const geo=new THREE.SphereGeometry(size,64,64)
 
 const textureLoader=new THREE.TextureLoader()
 
-const material=new THREE.MeshStandardMaterial({
+const mat=new THREE.MeshStandardMaterial({
 map:textureLoader.load(texture)
 })
 
-const planet=new THREE.Mesh(geometry,material)
+const planet=new THREE.Mesh(geo,mat)
 
 planet.userData={
 distance:distance,
@@ -165,32 +178,50 @@ return planet
 }
 
 
-const earth=createPlanet(
-1.5,
+const kiss=createPlanet(
+1.4,
 8,
 "https://threejs.org/examples/textures/planets/earth_atmos_2048.jpg",
 "Nuestro primer beso",
 "El momento donde comenzó nuestro universo."
 )
 
-const mars=createPlanet(
-1.2,
+const park=createPlanet(
+1.4,
 13,
+"https://threejs.org/examples/textures/planets/venus.jpg",
+"Citas en el parque",
+"Los días tranquilos contigo siempre son especiales."
+)
+
+const fights=createPlanet(
+1.4,
+18,
 "https://threejs.org/examples/textures/planets/mars_1024.jpg",
-"Nuestra primera cita",
-"El día que supe que quería más momentos contigo."
+"Nuestras peleas",
+"Aunque discutimos, siempre encontramos la forma de volver a amarnos."
 )
 
-const saturn=createPlanet(
+const jokes=createPlanet(
+1.4,
+23,
+"https://threejs.org/examples/textures/planets/earth_atmos_2048.jpg",
+"Nuestras bromas",
+"Las risas contigo son de mis cosas favoritas."
+)
+
+const future=createPlanet(
 2,
-20,
+30,
 "https://threejs.org/examples/textures/planets/jupiter.jpg",
-"Cuando me enamoré",
-"El día que entendí que eres única."
+"Nuestro futuro",
+"Aún nos quedan millones de recuerdos por crear."
 )
 
+const planets=[kiss,park,fights,jokes,future]
 
-// ANILLOS DE SATURNO
+
+// ANILLO PLANETA
 
 const ringGeo=new THREE.RingGeometry(2.8,4,64)
 
@@ -203,18 +234,7 @@ const ring=new THREE.Mesh(ringGeo,ringMat)
 
 ring.rotation.x=Math.PI/2
 
-saturn.add(ring)
-
-
-const future=createPlanet(
-1.7,
-28,
-"https://threejs.org/examples/textures/planets/venus.jpg",
-"Nuestro futuro",
-"Los mejores recuerdos contigo todavía no existen."
-)
-
-const planets=[earth,mars,saturn,future]
+future.add(ring)
 
 
 // ESTRELLAS FUGACES
@@ -222,7 +242,6 @@ const planets=[earth,mars,saturn,future]
 function shootingStar(){
 
 const geo=new THREE.SphereGeometry(0.2,8,8)
-
 const mat=new THREE.MeshBasicMaterial({color:0xffffff})
 
 const star=new THREE.Mesh(geo,mat)
@@ -243,9 +262,13 @@ star.position.y-=speed
 star.position.x+=speed
 
 if(star.position.y<-100){
+
 scene.remove(star)
+
 }else{
+
 requestAnimationFrame(move)
+
 }
 
 }
@@ -254,7 +277,20 @@ move()
 
 }
 
-setInterval(shootingStar,2500)
+setInterval(shootingStar,3000)
+
+
+// CONTROL MOUSE
+
+let mouseX=0
+let mouseY=0
+
+document.addEventListener("mousemove",(event)=>{
+
+mouseX=(event.clientX-window.innerWidth/2)/200
+mouseY=(event.clientY-window.innerHeight/2)/200
+
+})
 
 
 // ANIMACION
@@ -262,6 +298,9 @@ setInterval(shootingStar,2500)
 function animate(){
 
 requestAnimationFrame(animate)
+
+camera.position.x += (mouseX - camera.position.x)*0.02
+camera.position.y += (-mouseY - camera.position.y)*0.02
 
 planets.forEach(p=>{
 
@@ -271,9 +310,6 @@ p.position.x=Math.cos(p.userData.angle)*p.userData.distance
 p.position.z=Math.sin(p.userData.angle)*p.userData.distance
 
 })
-
-galaxy.rotation.y+=0.0003
-nebula.rotation.y+=0.0001
 
 renderer.render(scene,camera)
 
@@ -304,13 +340,12 @@ let p=intersects[0].object
 document.getElementById("panel").style.display="block"
 
 document.getElementById("title").innerText=p.userData.title
-
 document.getElementById("text").innerText=p.userData.text
 
 camera.position.set(
-p.position.x*1.6,
-p.position.y+3,
-p.position.z*1.6
+p.position.x*1.5,
+p.position.y+2,
+p.position.z*1.5
 )
 
 }
@@ -318,6 +353,5 @@ p.position.z*1.6
 })
 
 </script>
-
 </body>
 </html>
