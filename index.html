@@ -33,7 +33,7 @@ let targetPlanet = null;
 const sunLight = new THREE.PointLight(0xffffff, 5);
 sunLight.position.set(0,80,50);
 scene.add(sunLight);
-scene.add(new THREE.AmbientLight(0xffffff, 0.5)); // Luz ambiental más intensa
+scene.add(new THREE.AmbientLight(0xffffff, 0.6)); // Luz ambiental más intensa
 
 // ===== ESTRELLAS =====
 const starGeo = new THREE.BufferGeometry();
@@ -46,7 +46,7 @@ const starMaterial = new THREE.PointsMaterial({color:0xffffff, size:1.2});
 const stars = new THREE.Points(starGeo, starMaterial);
 scene.add(stars);
 
-// ===== TEXTURAS FUNCIONALES =====
+// ===== TEXTURAS =====
 const loader = new THREE.TextureLoader();
 const textures = {
   earth: loader.load('https://threejs.org/examples/textures/planets/earth_atmos_2048.jpg'),
@@ -60,18 +60,28 @@ const textures = {
   jupiterBump: loader.load('https://threejs.org/examples/textures/planets/jupiter2_1k.jpg'),
 
   venus: loader.load('https://threejs.org/examples/textures/planets/venus.jpg'),
+  venusBump: loader.load('https://threejs.org/examples/textures/planets/venus.jpg'),
+
   mercury: loader.load('https://threejs.org/examples/textures/planets/mercury.jpg'),
+  mercuryBump: loader.load('https://threejs.org/examples/textures/planets/mercury.jpg'),
+
   neptune: loader.load('https://threejs.org/examples/textures/planets/neptune.jpg'),
+  neptuneBump: loader.load('https://threejs.org/examples/textures/planets/neptune.jpg'),
+
   saturn: loader.load('https://threejs.org/examples/textures/planets/saturn.jpg'),
+  saturnBump: loader.load('https://threejs.org/examples/textures/planets/saturn.jpg'),
   ring: loader.load('https://threejs.org/examples/textures/planets/saturnringcolor.jpg')
 };
 
 // ===== FUNCION CREAR PLANETA =====
 function createPlanet(size, distance, colorMap, bumpMap, title, text, options={}){
   const geo = new THREE.SphereGeometry(size,64,64);
-  const matOptions = { map: colorMap };
-  if(bumpMap){ matOptions.bumpMap = bumpMap; matOptions.bumpScale = 0.2; }
-  // Usamos MeshPhongMaterial para que reflejen la luz y sean visibles
+  const matOptions = { 
+    map: colorMap,
+    bumpMap: bumpMap || null,
+    bumpScale: bumpMap? 0.2 : 0,
+    shininess:50
+  };
   const mat = new THREE.MeshPhongMaterial(matOptions);
   const planet = new THREE.Mesh(geo, mat);
   planet.userData = { distance, angle:Math.random()*Math.PI*2, title, text };
@@ -103,10 +113,10 @@ const planets = [
   createPlanet(1.6,10,textures.earth,textures.earthBump,"Nuestro primer beso","El momento donde empezó nuestro universo.",{clouds:true}),
   createPlanet(1.8,16,textures.mars,textures.marsBump,"Citas en el parque","Las tardes contigo en el parque siempre son especiales."),
   createPlanet(1.5,22,textures.jupiter,textures.jupiterBump,"Tus bromas apestosas","Aunque a veces son terribles, siempre terminan haciéndome reír."),
-  createPlanet(2.0,28,textures.venus,null,"Nuestras llamadas","Cada llamada contigo me recuerda cuánto significas para mí."),
-  createPlanet(1.7,34,textures.mercury,null,"Nuestras historias","Cada historia contigo es una página más de nuestra aventura."),
-  createPlanet(2.3,40,textures.neptune,null,"Nosotros","Tú y yo, siendo nosotros mismos."),
-  createPlanet(2.5,46,textures.saturn,null,"El amor más fuerte que el mundo","Nuestro amor siempre encuentra la forma de seguir brillando.",{ring:true})
+  createPlanet(2.0,28,textures.venus,textures.venusBump,"Nuestras llamadas","Cada llamada contigo me recuerda cuánto significas para mí."),
+  createPlanet(1.7,34,textures.mercury,textures.mercuryBump,"Nuestras historias","Cada historia contigo es una página más de nuestra aventura."),
+  createPlanet(2.3,40,textures.neptune,textures.neptuneBump,"Nosotros","Tú y yo, siendo nosotros mismos."),
+  createPlanet(2.5,46,textures.saturn,textures.saturnBump,"El amor más fuerte que el mundo","Nuestro amor siempre encuentra la forma de seguir brillando.",{ring:true})
 ];
 
 // ===== RAYCASTER =====
