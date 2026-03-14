@@ -1,310 +1,195 @@
 <!DOCTYPE html>
-
-<html>
+<html lang="es">
 <head>
-<meta charset="utf-8">
-<title>El Universo de Ale</title>
-
+<meta charset="UTF-8">
+<title>El Universo de Ale - Profesional</title>
 <style>
-
-body{
-margin:0;
-overflow:hidden;
-background:black;
-font-family:Arial;
+body {
+  margin:0;
+  overflow:hidden;
+  background:black;
+  font-family: Arial, sans-serif;
 }
 
-#panel{
-position:absolute;
-bottom:30px;
-left:50%;
-transform:translateX(-50%);
-background:rgba(0,0,0,0.85);
-color:white;
-padding:20px;
-border-radius:15px;
-display:none;
-max-width:420px;
-text-align:center;
+#panel {
+  position:absolute;
+  bottom:30px;
+  left:50%;
+  transform:translateX(-50%);
+  background:rgba(0,0,0,0.85);
+  color:white;
+  padding:20px;
+  border-radius:15px;
+  display:none;
+  max-width:420px;
+  text-align:center;
 }
 
-#homeBtn{
-position:absolute;
-top:20px;
-left:20px;
-padding:10px 15px;
-background:rgba(0,0,0,0.8);
-color:white;
-border:none;
-border-radius:10px;
-cursor:pointer;
-display:none;
+#homeBtn {
+  position:absolute;
+  top:20px;
+  left:20px;
+  padding:10px 15px;
+  background:rgba(0,0,0,0.8);
+  color:white;
+  border:none;
+  border-radius:10px;
+  cursor:pointer;
+  display:none;
 }
-
 </style>
-
 </head>
-
 <body>
 
 <button id="homeBtn">Volver al inicio</button>
-
 <div id="panel">
-<h2 id="title"></h2>
-<p id="text"></p>
+  <h2 id="title"></h2>
+  <p id="text"></p>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-
 <script>
+// =====================
+// ESCENA, CÁMARA Y RENDER
+// =====================
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 3000);
+const renderer = new THREE.WebGLRenderer({antialias:true});
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setPixelRatio(window.devicePixelRatio);
+document.body.appendChild(renderer.domElement);
 
-// ESCENA
+camera.position.set(0, 20, 50);
+const homePosition = camera.position.clone();
+let targetPlanet = null;
 
-const scene = new THREE.Scene()
+// =====================
+// LUCES
+// =====================
+const sunLight = new THREE.PointLight(0xffffff, 4);
+sunLight.position.set(0,50,30);
+scene.add(sunLight);
+scene.add(new THREE.AmbientLight(0xffffff, 0.5));
 
-const camera = new THREE.PerspectiveCamera(
-75,
-window.innerWidth/window.innerHeight,
-0.1,
-2000
-)
+// =====================
+// ESTRELLAS DINÁMICAS
+// =====================
+const starGeo = new THREE.BufferGeometry();
+const starVertices = [];
+for(let i=0;i<60000;i++){
+  starVertices.push(
+    (Math.random()-0.5)*3000,
+    (Math.random()-0.5)*3000,
+    (Math.random()-0.5)*3000
+  );
+}
+starGeo.setAttribute('position', new THREE.Float32BufferAttribute(starVertices,3));
+const starMaterial = new THREE.PointsMaterial({color:0xffffff, size:1.2, transparent:true});
+const stars = new THREE.Points(starGeo, starMaterial);
+scene.add(stars);
 
-const renderer = new THREE.WebGLRenderer({antialias:true})
-renderer.setSize(window.innerWidth,window.innerHeight)
-renderer.setPixelRatio(window.devicePixelRatio)
+// =====================
+// PLANETAS Y ATMÓSFERA
+// =====================
+function createPlanet(size, distance, color, title, text){
+  const geometry = new THREE.SphereGeometry(size,64,64);
+  const material = new THREE.MeshPhongMaterial({color, shininess:50, specular:0xaaaaaa});
+  const planet = new THREE.Mesh(geometry, material);
+  planet.userData = {distance, angle:Math.random()*Math.PI*2, title, text};
+  scene.add(planet);
 
-document.body.appendChild(renderer.domElement)
+  // Atmósfera brillante
+  const glowGeo = new THREE.SphereGeometry(size*1.08,64,64);
+  const glowMat = new THREE.MeshBasicMaterial({color:0x66ccff, transparent:true, opacity:0.25});
+  const glow = new THREE.Mesh(glowGeo, glowMat);
+  planet.add(glow);
 
-camera.position.set(0,10,35)
-
-let targetPlanet=null
-const homePosition=new THREE.Vector3(0,10,35)
-
-
-// LUCES (MUY IMPORTANTES PARA EVITAR PLANETAS NEGROS)
-
-const sunLight=new THREE.PointLight(0xffffff,4)
-sunLight.position.set(0,30,20)
-scene.add(sunLight)
-
-const ambient=new THREE.AmbientLight(0xffffff,1)
-scene.add(ambient)
-
-
-// ESTRELLAS
-
-const starGeometry=new THREE.BufferGeometry()
-const starVertices=[]
-
-for(let i=0;i<45000;i++){
-
-starVertices.push(
-(Math.random()-0.5)*2000,
-(Math.random()-0.5)*2000,
-(Math.random()-0.5)*2000
-)
-
+  return planet;
 }
 
-starGeometry.setAttribute(
-'position',
-new THREE.Float32BufferAttribute(starVertices,3)
-)
+// =====================
+// DEFINICIÓN DE PLANETAS
+// =====================
+const planets = [
+  createPlanet(1.6,10,0xff6699,"Nuestro primer beso","El momento donde empezó nuestro universo."),
+  createPlanet(1.8,16,0x3399ff,"Citas en el parque","Las tardes contigo en el parque siempre son especiales."),
+  createPlanet(1.5,22,0xff9933,"Tus bromas apestosas","Aunque a veces son terribles, siempre terminan haciéndome reír."),
+  createPlanet(2.0,28,0x66ffcc,"Nuestras llamadas","Cada llamada contigo me recuerda cuánto significas para mí."),
+  createPlanet(1.7,34,0xcc66ff,"Nuestras historias","Cada historia contigo es una página más de nuestra aventura."),
+  createPlanet(2.3,40,0x6699ff,"Nosotros","Tú y yo, siendo nosotros mismos."),
+  createPlanet(2.5,46,0xff3366,"El amor más fuerte que el mundo","Nuestro amor siempre encuentra la forma de seguir brillando.")
+];
 
-const starMaterial=new THREE.PointsMaterial({
-color:0xffffff,
-size:1
-})
+// =====================
+// RAYCASTER PARA CLICK
+// =====================
+const raycaster = new THREE.Raycaster();
+const mouse = new THREE.Vector2();
 
-const stars=new THREE.Points(starGeometry,starMaterial)
+window.addEventListener("click",(event)=>{
+  mouse.x = (event.clientX/window.innerWidth)*2-1;
+  mouse.y = -(event.clientY/window.innerHeight)*2+1;
+  raycaster.setFromCamera(mouse,camera);
+  const intersects = raycaster.intersectObjects(planets);
+  if(intersects.length>0){
+    targetPlanet = intersects[0].object;
+    document.getElementById("panel").style.display = "block";
+    document.getElementById("homeBtn").style.display = "block";
+    document.getElementById("title").innerText = targetPlanet.userData.title;
+    document.getElementById("text").innerText = targetPlanet.userData.text;
+  }
+});
 
-scene.add(stars)
+// =====================
+// BOTÓN VOLVER
+// =====================
+document.getElementById("homeBtn").onclick = ()=>{
+  targetPlanet=null;
+  camera.position.copy(homePosition);
+  document.getElementById("panel").style.display="none";
+  document.getElementById("homeBtn").style.display="none";
+};
 
-
-// CREAR PLANETA
-
-function createPlanet(size,distance,color,title,text){
-
-const geometry=new THREE.SphereGeometry(size,64,64)
-
-const material=new THREE.MeshPhongMaterial({
-color:color,
-shininess:40
-})
-
-const planet=new THREE.Mesh(geometry,material)
-
-planet.userData={
-distance:distance,
-angle:Math.random()*Math.PI*2,
-title:title,
-text:text
-}
-
-scene.add(planet)
-
-
-// ATMOSFERA
-
-const glowGeo=new THREE.SphereGeometry(size*1.07,64,64)
-
-const glowMat=new THREE.MeshBasicMaterial({
-color:0x66ccff,
-transparent:true,
-opacity:0.25
-})
-
-const glow=new THREE.Mesh(glowGeo,glowMat)
-
-planet.add(glow)
-
-return planet
-
-}
-
-
-// PLANETAS
-
-const planets=[]
-
-planets.push(createPlanet(
-1.5,
-8,
-0xff6699,
-"Nuestro primer beso",
-"El momento donde empezó nuestro universo."
-))
-
-planets.push(createPlanet(
-1.7,
-13,
-0x3399ff,
-"Citas en el parque",
-"Las tardes contigo en el parque siempre son especiales."
-))
-
-planets.push(createPlanet(
-1.4,
-18,
-0xff9933,
-"Tus bromas apestosas",
-"Aunque a veces son terribles, siempre terminan haciéndome reír."
-))
-
-planets.push(createPlanet(
-1.8,
-23,
-0x66ffcc,
-"Nuestras llamadas",
-"Cada llamada contigo me recuerda cuánto significas para mí."
-))
-
-planets.push(createPlanet(
-1.6,
-28,
-0xcc66ff,
-"Nuestras historias",
-"Cada historia contigo es una página más de nuestra aventura."
-))
-
-planets.push(createPlanet(
-2.1,
-33,
-0x6699ff,
-"Nosotros",
-"Tú y yo, siendo nosotros mismos."
-))
-
-planets.push(createPlanet(
-2.3,
-38,
-0xff3366,
-"El amor más fuerte que el mundo",
-"Nuestro amor siempre encuentra la forma de seguir brillando."
-))
-
-
-// CLICK PLANETAS
-
-const raycaster=new THREE.Raycaster()
-const mouse=new THREE.Vector2()
-
-window.addEventListener("click",event=>{
-
-mouse.x=(event.clientX/window.innerWidth)*2-1
-mouse.y=-(event.clientY/window.innerHeight)*2+1
-
-raycaster.setFromCamera(mouse,camera)
-
-const intersects=raycaster.intersectObjects(planets)
-
-if(intersects.length>0){
-
-targetPlanet=intersects[0].object
-
-document.getElementById("panel").style.display="block"
-document.getElementById("homeBtn").style.display="block"
-
-document.getElementById("title").innerText=targetPlanet.userData.title
-document.getElementById("text").innerText=targetPlanet.userData.text
-
-}
-
-})
-
-
-// BOTON VOLVER
-
-document.getElementById("homeBtn").onclick=function(){
-
-targetPlanet=null
-
-camera.position.copy(homePosition)
-
-document.getElementById("panel").style.display="none"
-document.getElementById("homeBtn").style.display="none"
-
-}
-
-
-// ANIMACION
-
+// =====================
+// ANIMACIÓN PRINCIPAL
+// =====================
 function animate(){
+  requestAnimationFrame(animate);
 
-requestAnimationFrame(animate)
+  // Movimiento planetas
+  planets.forEach(p=>{
+    p.userData.angle += 0.0018 + Math.random()*0.0004; // ligera variación
+    p.position.x = Math.cos(p.userData.angle)*p.userData.distance;
+    p.position.z = Math.sin(p.userData.angle)*p.userData.distance;
+    p.rotation.y += 0.003 + Math.random()*0.001; // rotación natural
+  });
 
-planets.forEach(p=>{
+  // Cámara tipo tour
+  if(targetPlanet){
+    const desiredPos = new THREE.Vector3(
+      targetPlanet.position.x + 6,
+      targetPlanet.position.y + 3,
+      targetPlanet.position.z + 6
+    );
+    camera.position.lerp(desiredPos,0.05);
+    camera.lookAt(targetPlanet.position);
+  }
 
-p.userData.angle+=0.002
+  // Estrellas parpadeo
+  starMaterial.opacity = 0.8 + Math.random()*0.2;
 
-p.position.x=Math.cos(p.userData.angle)*p.userData.distance
-p.position.z=Math.sin(p.userData.angle)*p.userData.distance
-
-p.rotation.y+=0.004
-
-})
-
-if(targetPlanet){
-
-camera.position.lerp(
-new THREE.Vector3(
-targetPlanet.position.x+6,
-targetPlanet.position.y+2,
-targetPlanet.position.z+6
-),0.05
-)
-
-camera.lookAt(targetPlanet.position)
-
+  renderer.render(scene,camera);
 }
+animate();
 
-renderer.render(scene,camera)
-
-}
-
-animate()
-
+// =====================
+// AJUSTE VENTANA
+// =====================
+window.addEventListener('resize',()=>{
+  camera.aspect = window.innerWidth/window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth,window.innerHeight);
+});
 </script>
-
 </body>
 </html>
