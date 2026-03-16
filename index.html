@@ -2,127 +2,280 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>Museo Espacial</title>
+<title>Nuestro Universo</title>
+
 <style>
-body { margin:0; overflow:hidden; background:black; font-family: Arial, sans-serif;}
-.info-panel {
-  position:absolute; top:20px; left:20px; color:white; background:rgba(0,0,0,0.5);
-  padding:10px 15px; border-radius:10px; max-width:250px;
+
+body{
+margin:0;
+overflow:hidden;
+background:black;
+font-family:Arial;
 }
+
+#portal{
+position:absolute;
+width:100%;
+height:100%;
+display:flex;
+justify-content:center;
+align-items:center;
+flex-direction:column;
+background:black;
+color:white;
+z-index:10;
+}
+
+#enter{
+padding:15px 30px;
+border:none;
+border-radius:10px;
+background:white;
+cursor:pointer;
+font-size:18px;
+}
+
+.titulo{
+position:absolute;
+top:20px;
+left:50%;
+transform:translateX(-50%);
+color:white;
+font-size:28px;
+letter-spacing:3px;
+}
+
+.info{
+position:absolute;
+color:white;
+background:rgba(0,0,0,0.6);
+padding:8px 14px;
+border-radius:10px;
+font-size:14px;
+pointer-events:none;
+}
+
 </style>
 </head>
+
 <body>
 
+<div id="portal">
+
+<h1>Nuestro pequeño universo</h1>
+<p>Un museo de recuerdos</p>
+
+<button id="enter">Entrar</button>
+
+</div>
+
+<div class="titulo">Nuestro Museo Espacial</div>
 <div id="infoContainer"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 
 <script>
-// ===== ESCENA, CÁMARA Y RENDER =====
-const scene = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 4000);
-camera.position.set(0,30,70);
-const renderer = new THREE.WebGLRenderer({antialias:true});
-renderer.setSize(window.innerWidth,window.innerHeight);
-document.body.appendChild(renderer.domElement);
 
-// ===== CONTROLES =====
-const controls = new THREE.OrbitControls(camera, renderer.domElement);
-controls.enableDamping = true;
-controls.dampingFactor = 0.05;
-controls.minDistance = 20;
-controls.maxDistance = 200;
+const portal=document.getElementById("portal")
 
-// ===== LUCES =====
-const sunLight = new THREE.PointLight(0xffffff, 2);
-sunLight.position.set(0,80,50);
-scene.add(sunLight);
-scene.add(new THREE.AmbientLight(0xffffff,0.2));
-
-// ===== ESTRELLAS =====
-const starGeo = new THREE.BufferGeometry();
-const starVertices = [];
-for(let i=0;i<50000;i++){
-  starVertices.push((Math.random()-0.5)*4000, (Math.random()-0.5)*4000, (Math.random()-0.5)*4000);
+document.getElementById("enter").onclick=()=>{
+portal.style.display="none"
+init()
 }
-starGeo.setAttribute('position', new THREE.Float32BufferAttribute(starVertices,3));
-const stars = new THREE.Points(starGeo,new THREE.PointsMaterial({color:0xffffff,size:1.2,transparent:true,opacity:0.8}));
-scene.add(stars);
 
-// ===== NEBULOSA =====
-const nebTexture = new THREE.TextureLoader().load('https://threejs.org/examples/textures/lensflare/lensflare0_alpha.png');
-const nebGeo = new THREE.SphereGeometry(800,32,32);
-const nebMat = new THREE.MeshBasicMaterial({map:nebTexture, transparent:true, opacity:0.15, side:THREE.BackSide});
-const nebula = new THREE.Mesh(nebGeo, nebMat);
-scene.add(nebula);
+function init(){
 
-// ===== PLANETAS =====
-const planetImages = [
-  'https://drive.google.com/uc?export=view&id=1-ZV3iV8G1zMvGcnGUcry6Lrb_e3uQBux',
-  'https://drive.google.com/uc?export=view&id=1sA2WRwr5Lm6PZ5K4Sd5lT49Y7HVBsQv7',
-  'https://drive.google.com/uc?export=view&id=1TfXKawvIIogRdwt0aZcSFGncAgB60P29',
-  'https://drive.google.com/uc?export=view&id=1s2yW7KT-Bszy8d3HmZU0_mxb0TgireWy',
-  'https://drive.google.com/uc?export=view&id=1WLGVjSqDXHi7apBdkvwAszMLV-CN_h5h',
-  'https://drive.google.com/uc?export=view&id=1cz2StgWxVU0FE-QeHMeasXNsTw99c9pA'
-];
+const scene=new THREE.Scene()
 
-const planetInfo = [
-  "Primer beso - Nuestro inicio",
-  "Citas en el parque - Momentos felices",
-  "Tus bromas - Siempre me hacen reír",
-  "Nuestras llamadas - Recuerdos íntimos",
-  "Historias juntos - Aventuras compartidas",
-  "Amor fuerte - Siempre brillando"
-];
+const camera=new THREE.PerspectiveCamera(
+75,
+window.innerWidth/window.innerHeight,
+0.1,
+4000
+)
 
-const planets = [];
-const infoContainer = document.getElementById('infoContainer');
+camera.position.set(0,20,60)
 
-planetImages.forEach((imgSrc,i)=>{
-  const texture = new THREE.TextureLoader().load(imgSrc);
-  const geo = new THREE.SphereGeometry(3 + Math.random(),64,64);
-  const mat = new THREE.MeshPhongMaterial({map:texture, shininess:5});
-  const planet = new THREE.Mesh(geo,mat);
-  const angle = (i/planetImages.length) * Math.PI*2;
-  const radius = 15 + i*10;
-  planet.position.set(Math.cos(angle)*radius, 0, Math.sin(angle)*radius);
-  scene.add(planet);
-  planets.push(planet);
+const renderer=new THREE.WebGLRenderer({antialias:true})
 
-  // Crear panel de información siempre visible
-  const div = document.createElement('div');
-  div.className = 'info-panel';
-  div.style.position = 'absolute';
-  div.innerText = planetInfo[i];
-  infoContainer.appendChild(div);
-  planet.userData.infoDiv = div;
-});
+renderer.setSize(window.innerWidth,window.innerHeight)
 
-// ===== ANIMACIÓN =====
+document.body.appendChild(renderer.domElement)
+
+const controls=new THREE.OrbitControls(camera,renderer.domElement)
+
+controls.enableDamping=true
+
+scene.add(new THREE.AmbientLight(0xffffff,0.4))
+
+const light=new THREE.PointLight(0xffffff,2)
+light.position.set(0,60,40)
+scene.add(light)
+
+/* estrellas */
+
+const starGeo=new THREE.BufferGeometry()
+const starVertices=[]
+
+for(let i=0;i<80000;i++){
+
+starVertices.push(
+(Math.random()-0.5)*4000,
+(Math.random()-0.5)*4000,
+(Math.random()-0.5)*4000
+)
+
+}
+
+starGeo.setAttribute(
+'position',
+new THREE.Float32BufferAttribute(starVertices,3)
+)
+
+const stars=new THREE.Points(
+starGeo,
+new THREE.PointsMaterial({color:0xffffff,size:1.3})
+)
+
+scene.add(stars)
+
+/* polvo espacial */
+
+const dustGeo=new THREE.BufferGeometry()
+const dust=[]
+
+for(let i=0;i<2000;i++){
+
+dust.push(
+(Math.random()-0.5)*400,
+(Math.random()-0.5)*400,
+(Math.random()-0.5)*400
+)
+
+}
+
+dustGeo.setAttribute(
+'position',
+new THREE.Float32BufferAttribute(dust,3)
+)
+
+const dustParticles=new THREE.Points(
+dustGeo,
+new THREE.PointsMaterial({
+color:0xffffff,
+size:2,
+opacity:0.5,
+transparent:true
+})
+)
+
+scene.add(dustParticles)
+
+/* polaroids */
+
+const images=[
+"foto1.jpg",
+"foto2.jpg",
+"foto3.jpg",
+"foto4.jpg",
+"foto5.jpg",
+"foto6.jpg"
+]
+
+const textos=[
+"Nuestro primer recuerdo",
+"Un día especial contigo",
+"Momentos que amo",
+"Nuestras llamadas",
+"Nuestras aventuras",
+"Nuestro amor"
+]
+
+const polaroids=[]
+
+const container=document.getElementById("infoContainer")
+
+images.forEach((img,i)=>{
+
+const texture=new THREE.TextureLoader().load(img)
+
+const geo=new THREE.PlaneGeometry(10,10)
+
+const mat=new THREE.MeshBasicMaterial({
+map:texture
+})
+
+const foto=new THREE.Mesh(geo,mat)
+
+const angle=(i/images.length)*Math.PI*2
+
+const r=20+i*5
+
+foto.position.set(
+Math.cos(angle)*r,
+0,
+Math.sin(angle)*r
+)
+
+foto.rotation.y=-angle
+
+scene.add(foto)
+
+polaroids.push(foto)
+
+/* panel */
+
+const div=document.createElement("div")
+div.className="info"
+div.innerText=textos[i]
+
+container.appendChild(div)
+
+foto.userData.panel=div
+
+})
+
 function animate(){
-  requestAnimationFrame(animate);
-  controls.update();
-  renderer.render(scene,camera);
 
-  // Actualizar posición de paneles de info
-  planets.forEach(p=>{
-    const vector = p.position.clone();
-    vector.project(camera);
-    const x = (vector.x * 0.5 + 0.5) * window.innerWidth;
-    const y = (-vector.y * 0.5 + 0.5) * window.innerHeight;
-    p.userData.infoDiv.style.left = `${x}px`;
-    p.userData.infoDiv.style.top = `${y}px`;
-  });
+requestAnimationFrame(animate)
+
+controls.update()
+
+const t=Date.now()*0.001
+
+polaroids.forEach(p=>{
+
+p.position.y=Math.sin(t+p.position.x)*2
+
+const v=p.position.clone()
+v.project(camera)
+
+const x=(v.x*0.5+0.5)*window.innerWidth
+const y=(-v.y*0.5+0.5)*window.innerHeight
+
+p.userData.panel.style.left=x+"px"
+p.userData.panel.style.top=y+"px"
+
+})
+
+renderer.render(scene,camera)
+
 }
 
-window.addEventListener('resize',()=>{
-  camera.aspect = window.innerWidth/window.innerHeight;
-  camera.updateProjectionMatrix();
-  renderer.setSize(window.innerWidth,window.innerHeight);
-});
+animate()
 
-animate();
+window.addEventListener("resize",()=>{
+
+camera.aspect=window.innerWidth/window.innerHeight
+camera.updateProjectionMatrix()
+renderer.setSize(window.innerWidth,window.innerHeight)
+
+})
+
+}
+
 </script>
+
 </body>
 </html>
