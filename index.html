@@ -1,262 +1,203 @@
 <!DOCTYPE html>
-
-<html>
+<html lang="es">
 <head>
-<meta charset="utf-8">
-<title>Para Ale 💖</title>
-
+<meta charset="UTF-8">
+<title>Nuestro Universo 💖</title>
 <style>
-body{margin:0;overflow:hidden;background:black;font-family:Arial;}
-
-#panel{
-position:absolute;
-bottom:30px;
-left:50%;
-transform:translateX(-50%);
-background:rgba(0,0,0,0.85);
-color:white;
-padding:20px;
-border-radius:15px;
-display:none;
-max-width:420px;
-text-align:center;
-}
-
-#homeBtn{
+body{margin:0;overflow:hidden;background:black;}
+canvas{display:block;}
+#info{
 position:absolute;
 top:20px;
 left:20px;
-padding:10px 15px;
-background:rgba(0,0,0,0.8);
 color:white;
-border:none;
+background:rgba(0,0,0,0.6);
+padding:15px;
 border-radius:10px;
+max-width:300px;
+font-family:Arial;
+}
+button{
+margin-top:10px;
+padding:5px 10px;
+border:none;
+background:#ff4d6d;
+color:white;
+border-radius:5px;
 cursor:pointer;
-display:none;
 }
 </style>
-
 </head>
-
 <body>
 
-<button id="homeBtn">Volver</button>
-
-<div id="panel">
-<h2 id="title"></h2>
-<p id="text"></p>
+<div id="info">
+<h2>Nuestro universo 💫</h2>
+<p>Arrastra para explorar</p>
+<button onclick="resetCamera()">Volver</button>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 
 <script>
+const scene = new THREE.Scene();
 
-const scene=new THREE.Scene()
+const camera = new THREE.PerspectiveCamera(75,window.innerWidth/window.innerHeight,0.1,1000);
+camera.position.z = 15;
 
-const camera=new THREE.PerspectiveCamera(75,window.innerWidth/window.innerHeight,0.1,3000)
-const renderer=new THREE.WebGLRenderer({antialias:true})
-renderer.setSize(window.innerWidth,window.innerHeight)
-renderer.setPixelRatio(window.devicePixelRatio)
-document.body.appendChild(renderer.domElement)
+const renderer = new THREE.WebGLRenderer({antialias:true});
+renderer.setSize(window.innerWidth,window.innerHeight);
+document.body.appendChild(renderer.domElement);
 
-camera.position.set(0,15,60)
+// 🌟 LUCES (ESTO ES CLAVE)
+const light1 = new THREE.PointLight(0xffffff,2);
+light1.position.set(10,10,10);
+scene.add(light1);
 
-let targetPlanet=null
-const homePosition=new THREE.Vector3(0,15,60)
+const light2 = new THREE.AmbientLight(0xffffff,0.5);
+scene.add(light2);
 
-const loader=new THREE.TextureLoader()
+// 🌌 ESTRELLAS BONITAS
+const starsGeometry = new THREE.BufferGeometry();
+const starVertices = [];
 
-// LUCES
-
-const light=new THREE.PointLight(0xffffff,4)
-light.position.set(0,50,40)
-scene.add(light)
-
-scene.add(new THREE.AmbientLight(0xffffff,1))
-
-// ESTRELLAS
-
-const starGeo=new THREE.BufferGeometry()
-const starVertices=[]
-
-for(let i=0;i<60000;i++){
+for(let i=0;i<2000;i++){
 starVertices.push(
-(Math.random()-0.5)*4000,
-(Math.random()-0.5)*4000,
-(Math.random()-0.5)*4000
-)
+(Math.random()-0.5)*200,
+(Math.random()-0.5)*200,
+(Math.random()-0.5)*200
+);
 }
 
-starGeo.setAttribute('position',new THREE.Float32BufferAttribute(starVertices,3))
+starsGeometry.setAttribute('position', new THREE.Float32BufferAttribute(starVertices,3));
 
-scene.add(new THREE.Points(
-starGeo,
-new THREE.PointsMaterial({color:0xffffff,size:1})
-))
+const starsMaterial = new THREE.PointsMaterial({
+color:0xffffff,
+size:0.7
+});
 
+const stars = new THREE.Points(starsGeometry,starsMaterial);
+scene.add(stars);
 
-// DATOS (TUS TEXTOS)
+// 📸 TEXTURAS
+const loader = new THREE.TextureLoader();
 
-const textos=[
-"ese día que nos pusimos al día con todo para despues vernos esa tarde",
-"aquellos mensajes tan lindos que aun me chivean",
-"aquellas cartas en las que es más amor que palabras",
-"aquellos dibujos que adoro con todo mi corazón",
-"aquellos momentos nuestros y solo nuestros que nadie más podrá tener",
-"esos regalos inolvidables",
-"aquel primer paso que recuerdo como si fuera de ayer",
-"esos momentos de pareja nuestra que me encanta tener contigo",
-"aquel día que tatuaste tus besos en mis labios bajo la lluvia que tanto nos encanta",
-"aquel día que nos dolia el estomago de tanto reir juntos",
-"mi foto favorita que tanto adoro",
-"aquel día que me sacaste de mi zona de confort y no quise regresar nunca mas",
-"nuestra union",
-"aquello que lo inicio todo",
-"esa noche que nos dimos cuenta que ambos queriamos amarnos sin importar nada",
-"nosotros",
-"nuestro hijo",
-"esa flor que significa tanto para mi",
-"ese amor que solo se enciende más"
-]
-
-// FORMATOS
-
+// ⚠️ USA EXACTAMENTE ESTOS FORMATOS SEGÚN TU REPO
 const formatos=[
-"PNG","PNG","JPG","PNG","PNG","JPG","PNG","JPG","JPG","JPG",
+"JPG","PNG","JPG","PNG","PNG","JPG","PNG","JPG","JPG","JPG",
 "JPG","JPG","JPG","JPG","JPG","JPG","JPG","JPG","JPG"
-]
+];
 
-// CREAR PLANETAS
+// 💖 FRASES
+const textos=[
+"Nos pusimos al día ",
+"Mensajes que me chivean ",
+"Cartas llenas de amor ",
+"Dibujos que adoro ",
+"Momentos solo nuestros ",
+"Regalos inolvidables ",
+"Nuestro primer paso ",
+"Momentos de pareja ",
+"Besos bajo la lluvia ",
+"Reímos hasta doler ",
+"Mi favorita ",
+"Me cambiaste la vida ",
+"Nuestra unión ",
+"El inicio de todo ",
+"Esa noche especial ",
+"Nosotros ",
+"Nuestro hijo ",
+"La flor ",
+"Nuestro amor eterno "
+];
 
-const planets=[]
+const planets=[];
 
 for(let i=0;i<19;i++){
 
-const geo=new THREE.SphereGeometry(1.5,64,64)
+let textura = loader.load(`./${i+1}.${formatos[i]}`);
 
-const mat=new THREE.MeshPhongMaterial({
-map: loader.load("imagenes/"+(i+1)+"."+formatos[i])
-})
+const geometry = new THREE.SphereGeometry(1.2,64,64);
+const material = new THREE.MeshStandardMaterial({
+map:textura,
+roughness:0.7,
+metalness:0.1
+});
 
-const planet=new THREE.Mesh(geo,mat)
+const planet = new THREE.Mesh(geometry,material);
 
-planet.userData={
-distance:10+i*3,
-angle:Math.random()*Math.PI*2,
-text:textos[i]
+planet.position.x = Math.cos(i)*10;
+planet.position.z = Math.sin(i)*10;
+
+scene.add(planet);
+
+planet.userData = {texto:textos[i]};
+planets.push(planet);
 }
 
-scene.add(planet)
+// 🖱️ MOUSE CONTROL
+let mouseDown=false;
 
-const glow=new THREE.Mesh(
-new THREE.SphereGeometry(1.7,64,64),
-new THREE.MeshBasicMaterial({color:0x66ccff,transparent:true,opacity:0.2})
-)
+document.addEventListener("mousedown",()=>mouseDown=true);
+document.addEventListener("mouseup",()=>mouseDown=false);
 
-planet.add(glow)
-
-planets.push(planet)
-
+document.addEventListener("mousemove",(e)=>{
+if(mouseDown){
+camera.position.x -= e.movementX*0.01;
+camera.position.y += e.movementY*0.01;
 }
+});
 
+// 🎯 CLICK PLANETAS
+const raycaster = new THREE.Raycaster();
+const mouse = new THREE.Vector2();
 
-// CONTROLES CON MOUSE (ARRASTRAR)
+document.addEventListener("click",(event)=>{
+mouse.x = (event.clientX/window.innerWidth)*2 -1;
+mouse.y = -(event.clientY/window.innerHeight)*2 +1;
 
-let isDragging=false
-let prevMouse={x:0,y:0}
+raycaster.setFromCamera(mouse,camera);
 
-window.addEventListener("mousedown",e=>{
-isDragging=true
-prevMouse.x=e.clientX
-prevMouse.y=e.clientY
-})
-
-window.addEventListener("mouseup",()=>isDragging=false)
-
-window.addEventListener("mousemove",e=>{
-if(!isDragging)return
-
-let dx=e.clientX-prevMouse.x
-let dy=e.clientY-prevMouse.y
-
-scene.rotation.y+=dx*0.002
-scene.rotation.x+=dy*0.002
-
-prevMouse.x=e.clientX
-prevMouse.y=e.clientY
-})
-
-// ZOOM
-
-window.addEventListener("wheel",e=>{
-camera.position.z+=e.deltaY*0.05
-})
-
-// CLICK
-
-const raycaster=new THREE.Raycaster()
-const mouse=new THREE.Vector2()
-
-window.addEventListener("click",event=>{
-
-mouse.x=(event.clientX/window.innerWidth)*2-1
-mouse.y=-(event.clientY/window.innerHeight)*2+1
-
-raycaster.setFromCamera(mouse,camera)
-
-const intersects=raycaster.intersectObjects(planets)
+const intersects = raycaster.intersectObjects(planets);
 
 if(intersects.length>0){
+const p = intersects[0].object;
+document.getElementById("info").innerHTML = `
+<h2>${p.userData.texto}</h2>
+<button onclick="resetCamera()">Volver</button>
+`;
+camera.position.set(p.position.x,p.position.y,p.position.z+3);
+}
+});
 
-targetPlanet=intersects[0].object
-
-document.getElementById("panel").style.display="block"
-document.getElementById("homeBtn").style.display="block"
-
-document.getElementById("title").innerText="💖"
-document.getElementById("text").innerText=targetPlanet.userData.text
-
+// 🔄 RESET
+function resetCamera(){
+camera.position.set(0,0,15);
+document.getElementById("info").innerHTML = `
+<h2>Nuestro universo 💫</h2>
+<p>Arrastra para explorar</p>
+<button onclick="resetCamera()">Volver</button>
+`;
 }
 
-})
-
-// BOTON
-
-document.getElementById("homeBtn").onclick=function(){
-targetPlanet=null
-camera.position.copy(homePosition)
-document.getElementById("panel").style.display="none"
-this.style.display="none"
-}
-
-// ANIMACION
-
+// 🎥 ANIMACIÓN
 function animate(){
-requestAnimationFrame(animate)
+requestAnimationFrame(animate);
 
 planets.forEach(p=>{
-p.userData.angle+=0.002
-p.position.x=Math.cos(p.userData.angle)*p.userData.distance
-p.position.z=Math.sin(p.userData.angle)*p.userData.distance
-p.rotation.y+=0.003
-})
+p.rotation.y += 0.003;
+});
 
-if(targetPlanet){
-camera.position.lerp(
-new THREE.Vector3(
-targetPlanet.position.x+5,
-targetPlanet.position.y+2,
-targetPlanet.position.z+5
-),0.05
-)
-camera.lookAt(targetPlanet.position)
+renderer.render(scene,camera);
 }
 
-renderer.render(scene,camera)
-}
+animate();
 
-animate()
-
+// RESPONSIVE
+window.addEventListener("resize",()=>{
+camera.aspect = window.innerWidth/window.innerHeight;
+camera.updateProjectionMatrix();
+renderer.setSize(window.innerWidth,window.innerHeight);
+});
 </script>
 
 </body>
