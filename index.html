@@ -2,10 +2,12 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>Nuestro Universo 💖</title>
+<title>Nuestros Recuerdos 💖</title>
+
 <style>
 body{margin:0;overflow:hidden;background:black;}
 canvas{display:block;}
+
 #info{
 position:absolute;
 top:20px;
@@ -17,9 +19,10 @@ border-radius:10px;
 max-width:300px;
 font-family:Arial;
 }
+
 button{
 margin-top:10px;
-padding:5px 10px;
+padding:6px 12px;
 border:none;
 background:#ff4d6d;
 color:white;
@@ -31,7 +34,7 @@ cursor:pointer;
 <body>
 
 <div id="info">
-<h2>Nuestro universo 💫</h2>
+<h2>Nuestros recuerdos 💫</h2>
 <p>Arrastra para explorar</p>
 <button onclick="resetCamera()">Volver</button>
 </div>
@@ -42,61 +45,66 @@ cursor:pointer;
 const scene = new THREE.Scene();
 
 const camera = new THREE.PerspectiveCamera(75,window.innerWidth/window.innerHeight,0.1,1000);
-camera.position.z = 15;
+camera.position.z = 20;
 
 const renderer = new THREE.WebGLRenderer({antialias:true});
 renderer.setSize(window.innerWidth,window.innerHeight);
 document.body.appendChild(renderer.domElement);
 
-// 🌟 LUCES (ESTO ES CLAVE)
-const light1 = new THREE.PointLight(0xffffff,2);
-light1.position.set(10,10,10);
-scene.add(light1);
+// 🌌 NEBULOSA (FONDO)
+const nebulaTexture = new THREE.TextureLoader().load(
+'https://threejs.org/examples/textures/nebula.jpg'
+);
+const nebulaMaterial = new THREE.MeshBasicMaterial({
+map: nebulaTexture,
+side: THREE.BackSide
+});
+const nebula = new THREE.Mesh(
+new THREE.SphereGeometry(200,64,64),
+nebulaMaterial
+);
+scene.add(nebula);
 
-const light2 = new THREE.AmbientLight(0xffffff,0.5);
-scene.add(light2);
-
-// 🌌 ESTRELLAS BONITAS
-const starsGeometry = new THREE.BufferGeometry();
+// ✨ ESTRELLAS REALISTAS
+const starGeo = new THREE.BufferGeometry();
 const starVertices = [];
 
-for(let i=0;i<2000;i++){
+for(let i=0;i<3000;i++){
 starVertices.push(
-(Math.random()-0.5)*200,
-(Math.random()-0.5)*200,
-(Math.random()-0.5)*200
+(Math.random()-0.5)*400,
+(Math.random()-0.5)*400,
+(Math.random()-0.5)*400
 );
 }
 
-starsGeometry.setAttribute('position', new THREE.Float32BufferAttribute(starVertices,3));
+starGeo.setAttribute('position', new THREE.Float32BufferAttribute(starVertices,3));
 
-const starsMaterial = new THREE.PointsMaterial({
+const starMaterial = new THREE.PointsMaterial({
 color:0xffffff,
-size:0.7
+size:0.6,
+transparent:true,
+opacity:0.8
 });
 
-const stars = new THREE.Points(starsGeometry,starsMaterial);
+const stars = new THREE.Points(starGeo,starMaterial);
 scene.add(stars);
 
-// 📸 TEXTURAS
-const loader = new THREE.TextureLoader();
-
-// ⚠️ USA EXACTAMENTE ESTOS FORMATOS SEGÚN TU REPO
+// 📸 FORMATO DE TUS ARCHIVOS
 const formatos=[
 "JPG","PNG","JPG","PNG","PNG","JPG","PNG","JPG","JPG","JPG",
 "JPG","JPG","JPG","JPG","JPG","JPG","JPG","JPG","JPG"
 ];
 
-// 💖 FRASES
+// 💖 TEXTOS
 const textos=[
-"Nos pusimos al día ",
+"Nos pusimos al día y nos amamos más",
 "Mensajes que me chivean ",
 "Cartas llenas de amor ",
 "Dibujos que adoro ",
 "Momentos solo nuestros ",
 "Regalos inolvidables ",
 "Nuestro primer paso ",
-"Momentos de pareja ",
+"Momentos de pareja que adoro",
 "Besos bajo la lluvia ",
 "Reímos hasta doler ",
 "Mi favorita ",
@@ -106,35 +114,34 @@ const textos=[
 "Esa noche especial ",
 "Nosotros ",
 "Nuestro hijo ",
-"La flor ",
+"La flor que tan especial es",
 "Nuestro amor eterno "
 ];
 
-const planets=[];
+const loader = new THREE.TextureLoader();
+const polaroids = [];
 
+// 🖼️ CREAR POLAROIDS
 for(let i=0;i<19;i++){
 
-let textura = loader.load(`./${i+1}.${formatos[i]}`);
+const texture = loader.load(`./${i+1}.${formatos[i]}`);
 
-const geometry = new THREE.SphereGeometry(1.2,64,64);
-const material = new THREE.MeshStandardMaterial({
-map:textura,
-roughness:0.7,
-metalness:0.1
-});
+const material = new THREE.MeshBasicMaterial({ map: texture });
 
-const planet = new THREE.Mesh(geometry,material);
+const geometry = new THREE.PlaneGeometry(3,4);
+const photo = new THREE.Mesh(geometry, material);
 
-planet.position.x = Math.cos(i)*10;
-planet.position.z = Math.sin(i)*10;
+// Distribución en círculo
+const angle = (i/19)*Math.PI*2;
+photo.position.set(Math.cos(angle)*15, (Math.random()-0.5)*5, Math.sin(angle)*15);
 
-scene.add(planet);
+scene.add(photo);
 
-planet.userData = {texto:textos[i]};
-planets.push(planet);
+photo.userData = { texto:textos[i] };
+polaroids.push(photo);
 }
 
-// 🖱️ MOUSE CONTROL
+// 🖱️ MOVER CON MOUSE
 let mouseDown=false;
 
 document.addEventListener("mousedown",()=>mouseDown=true);
@@ -142,12 +149,12 @@ document.addEventListener("mouseup",()=>mouseDown=false);
 
 document.addEventListener("mousemove",(e)=>{
 if(mouseDown){
-camera.position.x -= e.movementX*0.01;
-camera.position.y += e.movementY*0.01;
+camera.position.x -= e.movementX*0.02;
+camera.position.y += e.movementY*0.02;
 }
 });
 
-// 🎯 CLICK PLANETAS
+// 🎯 CLICK EN POLAROID
 const raycaster = new THREE.Raycaster();
 const mouse = new THREE.Vector2();
 
@@ -156,24 +163,29 @@ mouse.x = (event.clientX/window.innerWidth)*2 -1;
 mouse.y = -(event.clientY/window.innerHeight)*2 +1;
 
 raycaster.setFromCamera(mouse,camera);
-
-const intersects = raycaster.intersectObjects(planets);
+const intersects = raycaster.intersectObjects(polaroids);
 
 if(intersects.length>0){
-const p = intersects[0].object;
+const obj = intersects[0].object;
+
 document.getElementById("info").innerHTML = `
-<h2>${p.userData.texto}</h2>
+<h2>${obj.userData.texto}</h2>
 <button onclick="resetCamera()">Volver</button>
 `;
-camera.position.set(p.position.x,p.position.y,p.position.z+3);
+
+camera.position.set(
+obj.position.x,
+obj.position.y,
+obj.position.z + 5
+);
 }
 });
 
 // 🔄 RESET
 function resetCamera(){
-camera.position.set(0,0,15);
+camera.position.set(0,0,20);
 document.getElementById("info").innerHTML = `
-<h2>Nuestro universo 💫</h2>
+<h2>Nuestros recuerdos 💫</h2>
 <p>Arrastra para explorar</p>
 <button onclick="resetCamera()">Volver</button>
 `;
@@ -183,9 +195,8 @@ document.getElementById("info").innerHTML = `
 function animate(){
 requestAnimationFrame(animate);
 
-planets.forEach(p=>{
-p.rotation.y += 0.003;
-});
+// rotación suave
+stars.rotation.y += 0.0005;
 
 renderer.render(scene,camera);
 }
